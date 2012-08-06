@@ -1,0 +1,139 @@
+= Intro =
+This is a todo list for vim-reinhardt written with the vimwiki plugin. It is
+kept in the repo so that any contributors will have access to it.
+
+https://github.com/vim-scripts/vimwiki
+
+If you are interested in helping with a particular task but need further
+explanation or information, git blame the file and contact the person who added
+it!
+
+= Project initialization =
+* [X] Determine root
+    * [ ] Changing project
+* [.] Implement caching
+    * [ ] Store settings
+    * [X] Store installed apps
+    * [ ] Store management commands
+    * [ ] Store test classes and methods
+    * [ ] url/view mappings
+
+= Base =
+* [X] Correctly set the python.django filetype
+    * [X] htmldjango.html
+* [ ] Check what can reasonably be done if we have +python
+
+= Documentation =
+* [ ] Start writing
+* [ ] Intro
+* [ ] Philosophy
+* [ ] Tribute
+* [ ] Commands
+* [ ] Mappings
+* [ ] External plugins
+
+= Navigation =
+* [.] gf remapping
+    * [X] gf
+        * [ ] Implement a better finder using actual cursor position
+    * [ ] ^Wf
+    * [ ] ^Wgf
+    * [X] Templates
+    * [ ] i18n
+    * [ ] Views
+    * [ ] Find view by URL
+* [o] Alternating
+    * [ ] Fix pathnames to be relative
+    * [X] Apps
+    * [X] Admin, models, tests, views, urls
+    * [X] Fixtures
+    * [X] locale
+    * [ ] statics
+    * [ ] templates
+    * [ ] templatetags
+    * [ ] utils
+    * [o] Management commands
+        * [X] Goto
+        * [ ] Setup if nonexistant
+            * [ ] Use BufWritePre with checks
+    * [ ] Handle files as directories
+    * [ ] Context switchers
+        * [ ] Go to template from view
+        * [ ] Go to view from template
+    * [ ] Alternating EVST
+    * [ ] Decide on a.vim-style functionality
+        * [ ] Does it make sense in Django development?
+        * [ ] Do other users want it?
+        * [ ] Is powerful swtiches enough?
+* [ ] Templates
+    * [ ] Straight up
+    * [ ] Guessing. How?
+    * [ ] Default to app template dir
+    * [ ] Go to extends
+    * [ ] Go to include (gf)
+* [X] App switcher
+    * [ ] Completion with name relative to root?
+
+= manage.py =
+* [ ] Determine binary
+    * [ ] Use setting to define other
+    * [ ] Document
+* [ ] Look at other plugins
+* [ ] Get full list of commands
+    * [ ] Check Django source
+* [ ] Completion for custom commands
+    * [ ] Figure out if arguments can be completed
+* [ ] App creation
+    * [ ] Use native or call the management command?
+
+= Runserver =
+* [ ] Starting and stopping
+* [ ] Log buffer
+    * [ ] Syntax
+    * [ ] Terminal escape codes
+    * [ ] Regexp filtering
+* [ ] JSON request to function, result in scratch buffer
+
+= Locale =
+* [ ] Rmakemessages, Rcompilemessage, Rcm
+    * [ ] Traceback to quickfix
+    * [ ] Look at http://vim.sourceforge.net/scripts/script.php?script_id=695
+* [ ] Set current language editing
+    * [ ] Command for setting
+    * [ ] Completion
+* [ ] Get translated string echoed or to scratch
+* [ ] Make and compile on write?
+
+= Test running =
+* [ ] Quickfix for tracebacks
+    * [ ] Find error entry point in actual test function
+* [ ] Run current
+    * [ ] Check for existing implementation of finders
+    * [ ] Method
+    * [ ] Class
+    * [ ] File
+
+= Plugin integration =
+* [ ] ctrlp
+    * [ ] List choosing
+    * [ ] File/definition finding, app relative
+        * [ ] Templates
+        * [ ] Views
+        * [ ] Models
+        * [ ] msgids
+        * [ ] Commands
+* [ ] Nerdtree
+    * [ ] Open current app
+    * [ ] Open project
+* [ ] Uzbl integration
+    * [ ] Open current view
+    * [ ] Remember arguments
+* [ ] Better xpt templates
+    * [ ] Use a def-like engine for model arguments
+    * [ ] Check if needed to update for new models
+* [ ] Snipmate? (do people still use snipmate?)
+* [ ] dbext
+    * [ ] Can it be done without +python? Can db settings be found?
+* [ ] powerline
+* [ ] snakeskin
+* [ ] linguist
