@@ -1,7 +1,7 @@
 " autoload/reinhardt.vim
 " Author:       Lowe Thiderman <lowe.thiderman@gmail.com>
 
-" Install this file as autoload/rails.vim.
+" Install this file as autoload/reinhardt.vim.
 
 if exists('g:autoloaded_reinhardt') || &cp
   finish
