@@ -43,7 +43,7 @@ it!
     * [ ] Views
     * [ ] Find view by URL
 * [o] Alternating
-    * [ ] Fix pathnames to be relative
+    * [X] Fix pathnames to be relative
     * [X] Apps
     * [X] Admin, models, tests, views, urls
     * [X] Fixtures
@@ -73,6 +73,9 @@ it!
     * [ ] Go to include (gf)
 * [X] App switcher
     * [ ] Completion with name relative to root?
+* [ ] Rcd, Rlcd
+    * [ ] cd to app
+    * [ ] cd to project root
 
 = manage.py =
 * [ ] Determine binary
@@ -81,8 +84,10 @@ it!
 * [ ] Look at other plugins
 * [ ] Get full list of commands
     * [ ] Check Django source
-* [ ] Completion for custom commands
-    * [ ] Figure out if arguments can be completed
+    * [ ] Check if +python can find all non-project installed commands
+    * [ ] Completion
+        * [ ] Completion for custom commands
+        * [ ] Figure out if custom arguments can be completed
 * [ ] App creation
     * [ ] Use native or call the management command?
 

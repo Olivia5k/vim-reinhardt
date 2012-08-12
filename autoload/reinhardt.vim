@@ -15,7 +15,7 @@ set cpo&vim
 
 function! s:find_template(str)
   for app in values(s:apps)
-    let fn = app . '/templates/' . a:str
+    let fn = s:join(app, 'templates', a:str)
     if filereadable(fn)
       return fn
     endif
@@ -60,13 +60,26 @@ function! s:get_current_app()
   endwhile
 
   if fn != g:reinhardt_root
-    return fn
+    return s:relpath(fn)
   endif
   return ""
 endfunction
 
+function! s:relpath(path, ...)
+  let path = fnamemodify(a:path, ':p')
+
+  if a:0
+    " Extra argument. Make result relative to that path.
+    let rel = fnamemodify(a:1, ':p')
+  else
+    let rel = getcwd() . s:slash
+  endif
+
+  return substitute(path, rel, '', '')  " Make it relative!
+endfunction
+
 function! s:is_app(dir)
-  return filereadable(a:dir . '/models.py')  " Is this enough?
+  return filereadable(s:join(a:dir, 'models.py'))  " Is this enough?
 endfunction
 
 function! s:error(str)
@@ -83,12 +96,13 @@ function! s:get_current_lang()
 
   let app = s:get_current_app()
 
-  if app == "" || isdirectory(app.'/locale')
+  let dir = s:join(app, 'locale')
+  if app == "" || isdirectory(dir)
     " No locale has been created yet, or we are not in an app. Default to english.
     return 'en'
   endif
 
-  let langs = split(globpath(app.'/locale', '*'), '\n')
+  let langs = split(globpath(dir, '*'), '\n')
 
   if len(langs) == 0 || index('en', langs) >= 0
     " There are english files, or no files at all. Default to english.
@@ -114,6 +128,30 @@ function! s:add_ft(ft, append)
     endif
     exec "set ft=". join(fts, '.')
   endif
+endfunction
+
+function! s:default_file(app, path, ...)
+  let files = split(globpath(s:join(a:app, a:path), '*'), '\n')
+  let files = filter(files, 'v:val !~ "__init__.py$"')
+
+  if len(files) == 0 && a:0 " No files. Go default if one is provided
+    return s:join(a:path, a:1)
+  elseif len(files) == 1  " One fixture, go to it directly
+    return s:join(a:path, fnamemodify(files[0], ':t'))
+  else  " Many files, return the dir so the user can choose
+    return a:path
+  endif
+endfunction
+
+function! s:join(...)
+  " Join paths, just like os.path.join
+  let ret = []
+  for str in a:000  " The a: vars are not mutable. See E742.
+    " Remove extra slashes
+    let ret = add(ret, substitute(str, s:slash.'\+$', "", ""))
+  endfor
+
+  return join(ret, s:slash)
 endfunction
 
 " }}}
@@ -169,32 +207,34 @@ function! s:Edit(name, ...) abort
     return
   endif
 
-  let fn = s:get_current_app(). '/' . fn
+  let fn = s:join(s:get_current_app(), fn)
   edit `=fn`
 endfunction
 
 function! s:switch_app(name)
   if !has_key(s:apps, a:name)
     call s:error(a:name . " - No such app.")
+    return
   endif
 
   let app = s:apps[a:name]
   let cur = s:get_current_app()
-  let fn = "/models.py"
+  let fn = "models.py"
   let msg = ""
 
   if cur != ""
-    let nfn = substitute(fnamemodify(bufname('%'), ':p'), cur, "", "")
-    if filereadable(app.nfn)
+    let nfn = s:relpath(bufname('%'), cur)
+    " let nfn = substitute(cf, cur . s:slash, "", "")
+    if filereadable(s:join(app, nfn))
       let fn = nfn
     else
-      let msg = nfn . " not found in ".fnamemodify(app, ':t').". Going to models.py."
+      let msg = nfn . " not found in ".a:name.". Going to models.py."
     endif
   else
     let msg = "Currently not in an app. Going to models.py."
   endif
 
-  silent edit `=app.fn`
+  silent edit `=s:join(s:relpath(app), fn)`
 
   if msg != ""
     echo msg
@@ -202,49 +242,43 @@ function! s:switch_app(name)
 endfunction
 
 function! s:switch_file(kind, ...)
-  let cur = s:get_current_app()
-  if cur == ""
+  let app = s:get_current_app()
+  if app == ""
     return ""
   endif
 
   if a:kind == "locale"
-    return 'locale/'.(a:0 ? a:1 : s:get_current_lang()).'/LC_MESSAGES/django.po'
+    let lang = a:0 ? a:1 : s:get_current_lang()
+    return s:join('locale', lang, 'LC_MESSAGES', 'django.po')
 
   elseif a:kind == "fixture"
     if a:0
-      return 'fixtures/' . a:1
+      return s:join('fixtures', a:1)
     endif
 
-    let fix = split(globpath(cur . '/fixtures', '*'), '\n')
-    if len(fix) == 0  " No fixtures. Go default.
-      return 'fixtures/initial_data.json'
-    elseif len(fix) == 1  " One fixture, go to it directly
-      return 'fixtures/' . fnamemodify(fix[0], ':t')
-    else  " Many fixtures, return the dir so the user can choose
-      return 'fixtures/'
-    endif
+    return s:default_file(app, 'fixtures', 'initital_data.json')
 
   elseif a:kind == "manage"
+    let dir = s:join('management', 'commands')
     if a:0
-      return 'management/commands/' . a:1 . '.py'
+      return s:join(dir, a:1 . '.py')
     endif
 
-    let com = split(globpath(cur . '/management/commands', '*'), '\n')
-    let com = filter(com, 'v:val != "__init__.py"')
+    return s:default_file(app, d)
 
-    if len(com) == 1  " One command, go to it directly
-      return 'management/commands/' . fnamemodify(com[0], ':t')
-    else  " Many commands, return the dir so the user can choose
-      " s:setup_management()
-      return 'management/commands/'
+  elseif a:kind == "template"
+    if a:0
+      return s:join('templates', a:1)
     endif
+
+    return s:default_file(app, 'templates', 'base.html')
 
   elseif a:kind == "init"
     return '__init__.py'
 
   else
     " For simplicity, try plural and if it does not exist, return singular
-    if filereadable(cur . '/'. a:kind . "s.py")
+    if filereadable(s:join(app, a:kind . "s.py"))
       return a:kind . "s.py"
     else
       return a:kind .'.py'
@@ -269,10 +303,10 @@ command! -nargs=? -complete=customlist,s:Appcpl  Rmiddle   :call s:Edit('middlew
 " }}}
 " Completion {{{1
 
-function! s:cpl_dir(path, mod, A, ...)
+function! s:cpl_dir(path, glob, mod, A, ...)
   " Get files for completion functions
   let app = s:get_current_app()
-  let path = app.a:path
+  let path = s:join(app, a:path)
 
   if app == "" || !isdirectory(path)
     return []
@@ -283,9 +317,13 @@ function! s:cpl_dir(path, mod, A, ...)
     let f = f . ' && ' . a:1
   endif
 
-  let l = map(split(globpath(path, '*'), '\n'), "fnamemodify(v:val, '".a:mod."')")
+  let l = split(globpath(path, a:glob), '\n')
+  let l = filter(l, '!isdirectory(v:val)')  " TODO: Es broken
+  let l = map(l, 'substitute(v:val, "'.path.s:slash.'", "", "")')
+  if a:mod != ""
+    let l = map(l, "fnamemodify(v:val, '".a:mod."')")
+  endif
   return filter(l, f)
-
 endfunction
 
 function! s:Appcpl(A,P,L)
@@ -295,19 +333,20 @@ function! s:Appcpl(A,P,L)
 endfunction
 
 function! s:Langcpl(A,P,L)
-  return s:cpl_dir('/locale', ':t', a:A)
+  return s:cpl_dir('locale', '*', ':t', a:A)
 endfunction
 
 function! s:Fixcpl(A,P,L)
-  return s:cpl_dir('/fixtures', ':t', a:A)
+  return s:cpl_dir('fixtures', '*', ':t', a:A)
 endfunction
 
 function! s:Tmpcpl(A,P,L)
-  return s:cpl_dir('/templates', ':t', a:A)
+  return s:cpl_dir('templates', '**'.s:slash.'*', '', a:A)
 endfunction
 
 function! s:Mgmcpl(A,P,L)
-  return s:cpl_dir('/management/commands/', ':t:r', a:A, 'v:val != "__init__"')
+  let dir = s:join('management', 'commands')
+  return s:cpl_dir(dir, '*', ':t:r', a:A, 'v:val != "__init__"')
 endfunction
 
 " }}}
@@ -317,7 +356,7 @@ function! s:find_apps(...)
   " Recursively test for Django apps, default to the app root
   let path = a:0 ? a:1 : g:reinhardt_root
   for dir in filter(split(globpath(path, '*'), '\n'), 'isdirectory(v:val)')
-    if filereadable(dir . '/__init__.py') " Skip anything non-python
+    if filereadable(s:join(dir, '__init__.py')) " Skip anything non-python
       if s:is_app(dir)
         let s:apps[fnamemodify(dir, ":t")] = dir
       else
@@ -343,6 +382,11 @@ let s:file = expand('<sfile>:p')
 
 if !exists('s:apps')
   let s:apps = {}
+endif
+
+if !exists('s:slash')
+  " Windows compability, probably?
+  let s:slash = has('win32') || has('win64') ? '\' : '/'
 endif
 
 " }}}
