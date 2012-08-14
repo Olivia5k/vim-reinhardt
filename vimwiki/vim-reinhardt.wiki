@@ -51,12 +51,12 @@ it!
     * [ ] statics
     * [ ] templates
     * [ ] templatetags
-    * [ ] utils
+    * [X] utils
     * [o] Management commands
         * [X] Goto
         * [ ] Setup if nonexistant
             * [ ] Use BufWritePre with checks
-    * [ ] Handle files as directories
+    * [X] Handle files as directories
     * [ ] Context switchers
         * [ ] Go to template from view
         * [ ] Go to view from template

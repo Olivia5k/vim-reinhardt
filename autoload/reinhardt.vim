@@ -282,11 +282,16 @@ function! s:switch_file(kind, ...)
     return '__init__.py'
 
   else
-    " For simplicity, try plural and if it does not exist, return singular
+    " For simplicity, try plural and if it does not exist, return singular.
+    " Also, try directories.
     if filereadable(s:join(app, a:kind . "s.py"))
       return a:kind . "s.py"
+    elseif isdirectory(s:join(app, a:kind . "s"))
+      return a:kind . "s"
+    elseif isdirectory(s:join(app, a:kind))
+      return a:kind
     else
-      return a:kind .'.py'
+      return a:kind . '.py'
     endif
   endif
 endfunction
