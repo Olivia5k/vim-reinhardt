@@ -184,7 +184,6 @@ function! s:BufMappings()
     call s:altmap('admin', 'a')
     call s:altmap('fixture', 'x')
     call s:altmap('form', 'f')
-    call s:altmap('init', 'i')
     call s:altmap('locale', 'l')
     call s:altmap('manage', 'n')
     call s:altmap('middle', 'd')
@@ -192,6 +191,7 @@ function! s:BufMappings()
     call s:altmap('template', 'e')
     call s:altmap('test', 't')
     call s:altmap('url', 'u')
+    call s:altmap('util', 'i')
     call s:altmap('view', 'v')
   endif
 endfunction
@@ -323,6 +323,7 @@ com! -nargs=? -complete=customlist,s:Appcpl  Rmodel    :call s:Edit('model', <f-
 com! -nargs=? -complete=customlist,s:Tmpcpl  Rtemplate :call s:Edit('template', <f-args>)
 com! -nargs=? -complete=customlist,s:Appcpl  Rtest     :call s:Edit('test', <f-args>)
 com! -nargs=? -complete=customlist,s:Appcpl  Rurl      :call s:Edit('url', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Rutil     :call s:Edit('util', <f-args>)
 com! -nargs=? -complete=customlist,s:Appcpl  Rview     :call s:Edit('view', <f-args>)
 com! -nargs=? -complete=customlist,s:Appcpl  Rmiddle   :call s:Edit('middleware', <f-args>)
 

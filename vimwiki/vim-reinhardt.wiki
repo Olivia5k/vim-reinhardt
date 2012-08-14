@@ -73,9 +73,9 @@ it!
     * [ ] Go to include (gf)
 * [X] App switcher
     * [ ] Completion with name relative to root?
-* [ ] Rcd, Rlcd
-    * [ ] cd to app
-    * [ ] cd to project root
+* [X] Rcd, Rlcd
+    * [X] cd to app
+    * [X] cd to project root
 
 = manage.py =
 * [ ] Determine binary
