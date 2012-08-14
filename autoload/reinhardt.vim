@@ -164,8 +164,8 @@ endfunction
 
 function! s:altmap(name, key)
   let k = g:reinhardt_mapkey
-  exe 'nmap '.k.a:key.' :R'.a:name.'<cr>'
-  exe 'nmap '.k.toupper(a:key).' :R'.a:name.' '
+  exe 'nmap <buffer> <silent> '.k.a:key.' :R'.a:name.'<cr>'
+  exe 'nmap <buffer> <silent> '.k.toupper(a:key).' :R'.a:name.' '
 endfunction
 
 function! s:BufMappings()
