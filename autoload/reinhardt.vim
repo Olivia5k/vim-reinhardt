@@ -200,7 +200,7 @@ endfunction
 " }}}
 " Alternating and navigation {{{1
 
-function! s:Edit(name, ...) abort
+function! s:Edit(name, cmd, ...) abort
   let fn = ''
   if a:0
     let fn = s:switch_file(a:name, a:1)
@@ -214,7 +214,16 @@ function! s:Edit(name, ...) abort
   endif
 
   let fn = s:join(s:get_current_app(), fn)
-  edit `=fn`
+  let cmd = 'edit'
+  if a:cmd == "S"
+    let cmd = "split"
+  elseif a:cmd == "V"
+    let cmd = "vsplit"
+  elseif a:cmd == "T"
+    let cmd = "tabedit"
+  endif
+
+  exe cmd fn
 endfunction
 
 function! s:switch_app(name)
@@ -318,24 +327,39 @@ function! s:Cd(cmd, ...)
   endif
 endfunction
 
-com! -nargs=1 -complete=customlist,s:Appcpl  Rswitch   :call s:switch_app(<f-args>)
-com! -nargs=? -complete=customlist,s:Langcpl Rlocale   :call s:Edit('locale', <f-args>)
-com! -nargs=? -complete=customlist,s:Fixcpl  Rfixture  :call s:Edit('fixture', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Radmin    :call s:Edit('admin', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rform     :call s:Edit('form', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rinit     :call s:Edit('init', <f-args>)
-com! -nargs=? -complete=customlist,s:Mgmcpl  Rmanage   :call s:Edit('manage', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rmodel    :call s:Edit('model', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rstatic   :call s:Edit('static', <f-args>)
-com! -nargs=? -complete=customlist,s:Tmpcpl  Rtemplate :call s:Edit('template', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rtest     :call s:Edit('test', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rurl      :call s:Edit('url', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rutil     :call s:Edit('util', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rview     :call s:Edit('view', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rmiddle   :call s:Edit('middleware', <f-args>)
+function! s:addcmd(type, ...)
+  let cpl = a:0 ? a:1 : 'App'
+  let cmds = 'ESVT '
+  let cmd = ''
 
-com! -nargs=? -complete=customlist,s:Appcpl  Rcd   :call s:Cd('cd', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl  Rlcd  :call s:Cd('lcd', <f-args>)
+  while cmds != ''
+    let s = 'com! -nargs=? -complete=customlist,s:'.cpl.'cpl R'.cmd.a:type.' '
+    let s = s . ':call s:Edit("'.a:type.'", "'.cmd.'", <f-args>)'
+    exe s
+
+    let cmd = strpart(cmds,0,1)
+    let cmds = strpart(cmds,1)
+  endwhile
+endfunction
+
+com! -nargs=1 -complete=customlist,s:Appcpl Rswitch :call s:switch_app(<f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl Rcd  :call s:Cd('cd', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl Rlcd :call s:Cd('lcd', <f-args>)
+
+call s:addcmd('admin')
+call s:addcmd('fixture', 'Fix')
+call s:addcmd('form')
+call s:addcmd('init')
+call s:addcmd('locale', 'Lang')
+call s:addcmd('manage', 'Mgm')
+call s:addcmd('middle')
+call s:addcmd('model')
+call s:addcmd('static')
+call s:addcmd('template', 'Tmp')
+call s:addcmd('test')
+call s:addcmd('url')
+call s:addcmd('util')
+call s:addcmd('view')
 " }}}
 " Completion {{{1
 

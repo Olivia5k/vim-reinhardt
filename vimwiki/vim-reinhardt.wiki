@@ -42,7 +42,7 @@ it!
     * [ ] i18n
     * [ ] Views
     * [ ] Find view by URL
-* [o] Alternating
+* [O] Alternating
     * [X] Fix pathnames to be relative
     * [X] Apps
     * [X] Admin, models, tests, views, urls
@@ -60,7 +60,7 @@ it!
     * [ ] Context switchers
         * [ ] Go to template from view
         * [ ] Go to view from template
-    * [ ] Alternating EVST
+    * [X] Alternating EVST
     * [ ] Decide on a.vim-style functionality
         * [ ] Does it make sense in Django development?
         * [ ] Do other users want it?
