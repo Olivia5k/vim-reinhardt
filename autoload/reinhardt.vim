@@ -71,11 +71,16 @@ function! s:relpath(path, ...)
   if a:0
     " Extra argument. Make result relative to that path.
     let rel = fnamemodify(a:1, ':p')
+    return substitute(path, rel, '', '')  " Make it relative!
   else
     let rel = getcwd() . s:slash
-  endif
+    let rel = substitute(path, rel, '', '')  " Make it relative!
 
-  return substitute(path, rel, '', '')  " Make it relative!
+    " If getcwd() is the same as the target, the string would be empty. This
+    " would be a no-go for s:get_current_app and the like, who returns empty
+    " strings on errors. This is probably the best workaround.
+    return rel == '' ? './' : rel
+  endif
 endfunction
 
 function! s:is_app(dir)
@@ -192,7 +197,7 @@ function! s:BufMappings()
 endfunction
 
 " }}}
-" Alternating {{{1
+" Alternating and navigation {{{1
 
 function! s:Edit(name, ...) abort
   let fn = ''
@@ -286,20 +291,43 @@ function! s:switch_file(kind, ...)
   endif
 endfunction
 
-command! -nargs=1 -complete=customlist,s:Appcpl  Rswitch   :call s:switch_app(<f-args>)
-command! -nargs=? -complete=customlist,s:Langcpl Rlocale   :call s:Edit('locale', <f-args>)
-command! -nargs=? -complete=customlist,s:Fixcpl  Rfixture  :call s:Edit('fixture', <f-args>)
-command! -nargs=? -complete=customlist,s:Appcpl  Radmin    :call s:Edit('admin', <f-args>)
-command! -nargs=? -complete=customlist,s:Appcpl  Rform     :call s:Edit('form', <f-args>)
-command! -nargs=? -complete=customlist,s:Appcpl  Rinit     :call s:Edit('init', <f-args>)
-command! -nargs=? -complete=customlist,s:Mgmcpl  Rmanage   :call s:Edit('manage', <f-args>)
-command! -nargs=? -complete=customlist,s:Appcpl  Rmodel    :call s:Edit('model', <f-args>)
-command! -nargs=? -complete=customlist,s:Tmpcpl  Rtemplate :call s:Edit('template', <f-args>)
-command! -nargs=? -complete=customlist,s:Appcpl  Rtest     :call s:Edit('test', <f-args>)
-command! -nargs=? -complete=customlist,s:Appcpl  Rurl      :call s:Edit('url', <f-args>)
-command! -nargs=? -complete=customlist,s:Appcpl  Rview     :call s:Edit('view', <f-args>)
-command! -nargs=? -complete=customlist,s:Appcpl  Rmiddle   :call s:Edit('middleware', <f-args>)
+function! s:Cd(cmd, ...)
+  let path = g:reinhardt_root
+  if a:0
+    if !has_key(s:apps, a:1)
+      call s:error(a:1 . " - No such app.")
+      return
+    endif
 
+    let path = s:apps[a:1]
+    call s:switch_app(a:1)
+  endif
+
+  let path = s:relpath(path)
+
+  " If the path is empty, we are already at the destination. An empty l?cd
+  " would go to the users $HOME, which is not what we want.
+  if path != ""
+    exe a:cmd path
+  endif
+endfunction
+
+com! -nargs=1 -complete=customlist,s:Appcpl  Rswitch   :call s:switch_app(<f-args>)
+com! -nargs=? -complete=customlist,s:Langcpl Rlocale   :call s:Edit('locale', <f-args>)
+com! -nargs=? -complete=customlist,s:Fixcpl  Rfixture  :call s:Edit('fixture', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Radmin    :call s:Edit('admin', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Rform     :call s:Edit('form', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Rinit     :call s:Edit('init', <f-args>)
+com! -nargs=? -complete=customlist,s:Mgmcpl  Rmanage   :call s:Edit('manage', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Rmodel    :call s:Edit('model', <f-args>)
+com! -nargs=? -complete=customlist,s:Tmpcpl  Rtemplate :call s:Edit('template', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Rtest     :call s:Edit('test', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Rurl      :call s:Edit('url', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Rview     :call s:Edit('view', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Rmiddle   :call s:Edit('middleware', <f-args>)
+
+com! -nargs=? -complete=customlist,s:Appcpl  Rcd   :call s:Cd('cd', <f-args>)
+com! -nargs=? -complete=customlist,s:Appcpl  Rlcd  :call s:Cd('lcd', <f-args>)
 " }}}
 " Completion {{{1
 
