@@ -48,8 +48,8 @@ it!
     * [X] Admin, models, tests, views, urls
     * [X] Fixtures
     * [X] locale
-    * [ ] statics
-    * [ ] templates
+    * [X] statics
+    * [X] templates
     * [ ] templatetags
     * [X] utils
     * [o] Management commands
@@ -64,7 +64,7 @@ it!
     * [ ] Decide on a.vim-style functionality
         * [ ] Does it make sense in Django development?
         * [ ] Do other users want it?
-        * [ ] Is powerful swtiches enough?
+        * [ ] Is powerful switches enough?
 * [ ] Templates
     * [ ] Straight up
     * [ ] Guessing. How?
