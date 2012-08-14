@@ -1,7 +1,7 @@
 if exists('g:loaded_reinhardt') || &cp || v:version < 700
   finish
 endif
-" let g:loaded_reinhardt = 1
+let g:loaded_reinhardt = 1
 
 function! s:error(str)
   echohl ErrorMsg
@@ -34,9 +34,12 @@ function! s:Detect(filename)
   endif
 
   let fn = substitute(fnamemodify(a:filename, ":p"), '\c^file://', '', '')
+  let ofn = ""
 
-  while fn != '/'
+  while fn != ofn
+    let ofn = fn
     let fn = fnamemodify(fn, ":h")
+
     if filereadable(fn . '/settings.py') && filereadable(fn . '/manage.py')
       let g:reinhardt_root = fn
       call s:autoload()
