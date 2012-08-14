@@ -159,6 +159,17 @@ function! s:join(...)
   return join(ret, s:slash)
 endfunction
 
+function! s:get_management_commands()
+  let cmds = []
+  for app in values(s:apps)
+    let dir = s:join(app, 'management', 'commands')
+    let l = map(split(globpath(dir, '*'), '\n'), 'fnamemodify(v:val, ":t:r")')
+    let l = filter(l, 'v:val != "__init__"')
+    let cmds = extend(cmds, l)
+  endfor
+  return cmds
+endfunction
+
 " }}}
 " Mappings {{{1
 
@@ -408,6 +419,42 @@ function! s:Mgmcpl(A,P,L)
   let dir = s:join('management', 'commands')
   return s:cpl_dir(dir, '*', ':t:r', a:A, 'v:val != "__init__"')
 endfunction
+
+" }}}
+" manage.py {{{1
+
+function! s:get_manage()
+  let manage = 'manage.py'
+  if exists('g:reinhardt_binaries')
+    if has_key(g:reinhardt_binaries, g:reinhardt_root)
+      let manage = g:reinhardt_binaries[g:reinhardt_root]
+      return fnamemodify(s:join(g:reinhardt_root, manage), ':p')
+    endif
+  endif
+
+  let manage = s:join(g:reinhardt_root, manage)
+  if !executable(manage)
+    let python = "python"
+    if executable('python2')
+      let python = "python2"
+    endif
+    let manage = python . " " . manage
+  endif
+  return manage
+endfunction
+
+function! s:Manage(...)
+  exe "!" s:get_manage() join(a:000)
+endfunction
+
+function! s:Managecpl(A,P,L)
+  let default = "cleanup compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages reset runfcgi runserver shell sql sqlall sqlclear sqlcustom sqlflush sqlindexes sqlinitialdata sqlreset sqlsequencereset startapp startproject syncdb test testserver validate"
+  let cmds = split(default)
+  let cmds = extend(cmds, s:get_management_commands())
+  return sort(filter(cmds, 'v:val =~# "^".a:A'))
+endfunction
+
+com! -nargs=+ -complete=customlist,s:Managecpl Reinhardt :call s:Manage(<f-args>)
 
 " }}}
 " Initialization {{{1

@@ -78,18 +78,25 @@ it!
     * [X] cd to project root
 
 = manage.py =
-* [ ] Determine binary
-    * [ ] Use setting to define other
-    * [ ] Document
-* [ ] Look at other plugins
-* [ ] Get full list of commands
-    * [ ] Check Django source
+* [X] Determine binary
+    * [X] manage.py
+        * [X] Python prefix
+    * [X] Use setting to define other
+* [X] Get full list of commands
+    * [X] Check Django source
+    * [X] Find in apps
+* [.] Completion
+    * [X] Basic commands
+        * [X] Django builtins
+        * [X] Custom commands
     * [ ] Check if +python can find all non-project installed commands
-    * [ ] Completion
-        * [ ] Completion for custom commands
-        * [ ] Figure out if custom arguments can be completed
+    * [ ] Figure out if custom arguments can be completed
 * [ ] App creation
-    * [ ] Use native or call the management command?
+    * [ ] Use native or call the management command? Native if +python?
+* [ ] Project creation
+* [ ] Framework
+    * [ ] Completion callbacks
+    * [ ] Execution callbacks
 
 = Runserver =
 * [ ] Starting and stopping
@@ -117,6 +124,11 @@ it!
     * [ ] Method
     * [ ] Class
     * [ ] File
+
+= Python support =
+* [ ] Support +python
+* [ ] Automatically set up omnicomplete
+* [ ] Research possibilities for other badass functions
 
 = Plugin integration =
 * [ ] ctrlp
