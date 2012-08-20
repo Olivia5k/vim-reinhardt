@@ -24,6 +24,7 @@ function! s:find_template(str)
   " Create a new in the current app; with directory creation
   " return s:new_template(a:str)
   echo "No template found"
+  return ""
 endfunction
 
 function! s:FindDefinition()
@@ -148,6 +149,26 @@ function! s:default_file(app, path, ...)
   endif
 endfunction
 
+function! s:relative_file(fn, ...)
+  if a:fn == 'admin'
+    let base = 'admin'
+  elseif a:fn == 'init'
+    let base = '__init__'
+  elseif a:fn == 'middle'
+    let base = 'middleware'
+  else
+    let base = a:fn . 's'
+  endif
+
+  let fn = s:join(a:0 ? s:apps[a:1] : s:get_current_app(), base)
+
+  if isdirectory(fn)
+    return fn
+  else
+    return fn . '.py'
+  endif
+endfunction
+
 function! s:join(...)
   " Join paths, just like os.path.join
   let ret = []
@@ -212,20 +233,20 @@ endfunction
 " Alternating and navigation {{{1
 
 function! s:Edit(name, cmd, ...) abort
-  let fn = ''
-  if a:0
-    let fn = s:switch_file(a:name, a:1)
-  else
-    let fn = s:switch_file(a:name)
-  endif
+  let args = extend([a:name], a:000)
+  let fn = call('s:switch_file', args)
 
   if fn == ""
+    if a:0 && has_key(s:apps, a:1)
+      return s:switch_app(a:1, a:name)
+    endif
+
     call s:error('No file found for ' . a:name)
     return
   endif
 
-  let fn = s:join(s:get_current_app(), fn)
   let cmd = 'edit'
+
   if a:cmd == "S"
     let cmd = "split"
   elseif a:cmd == "V"
@@ -234,10 +255,21 @@ function! s:Edit(name, cmd, ...) abort
     let cmd = "tabedit"
   endif
 
+  let args = a:000
+  let fn = s:join(s:get_current_app(), fn)
+  if isdirectory(fn) && a:0
+    let fn = s:join(fn, a:1 . '.py')
+    let args = args[1:]
+  endif
+
+  if exists('g:loaded_snakeskin') && s:is_snakeskinable(a:name)
+    return call('SnakeskinEdit', extend([cmd, fn], args))
+  endif
+
   exe cmd fn
 endfunction
 
-function! s:switch_app(name)
+function! s:switch_app(name, ...)
   if !has_key(s:apps, a:name)
     call s:error(a:name . " - No such app.")
     return
@@ -248,7 +280,9 @@ function! s:switch_app(name)
   let fn = "models.py"
   let msg = ""
 
-  if cur != ""
+  if a:0
+    let fn = s:relative_file(a:1)
+  elseif cur != ""
     let nfn = s:relpath(bufname('%'), cur)
     " let nfn = substitute(cf, cur . s:slash, "", "")
     if filereadable(s:join(app, nfn))
@@ -303,17 +337,7 @@ function! s:switch_file(kind, ...)
     return '__init__.py'
 
   else
-    " For simplicity, try plural and if it does not exist, return singular.
-    " Also, try directories.
-    if filereadable(s:join(app, a:kind . "s.py"))
-      return a:kind . "s.py"
-    elseif isdirectory(s:join(app, a:kind . "s"))
-      return a:kind . "s"
-    elseif isdirectory(s:join(app, a:kind))
-      return a:kind
-    else
-      return a:kind . '.py'
-    endif
+    return fnamemodify(s:relative_file(a:kind), ':t')
   endif
 endfunction
 
@@ -339,12 +363,12 @@ function! s:Cd(cmd, ...)
 endfunction
 
 function! s:addcmd(type, ...)
-  let cpl = a:0 ? a:1 : 'App'
+  let cpl = a:0 ? a:1 : 'Snake'
   let cmds = 'ESVT '
   let cmd = ''
 
   while cmds != ''
-    let s = 'com! -nargs=? -complete=customlist,s:'.cpl.'cpl R'.cmd.a:type.' '
+    let s = 'com! -nargs=* -complete=customlist,s:'.cpl.'cpl R'.cmd.a:type.' '
     let s = s . ':call s:Edit("'.a:type.'", "'.cmd.'", <f-args>)'
     exe s
 
@@ -371,6 +395,7 @@ call s:addcmd('test')
 call s:addcmd('url')
 call s:addcmd('util')
 call s:addcmd('view')
+
 " }}}
 " Completion {{{1
 
@@ -389,12 +414,16 @@ function! s:cpl_dir(path, glob, mod, A, ...)
   endif
 
   let l = split(globpath(path, a:glob), '\n')
-  let l = filter(l, '!isdirectory(v:val)')  " TODO: Es broken
+  let l = filter(l, '!isdirectory(v:val)')  " TODO: Es broken (breaks langcpl)
   let l = map(l, 'substitute(v:val, "'.path.s:slash.'", "", "")')
   if a:mod != ""
     let l = map(l, "fnamemodify(v:val, '".a:mod."')")
   endif
-  return filter(l, f)
+  let l = filter(l, f)
+  if len(l) == 1
+    return [l[0] . ' ']
+  endif
+  return l
 endfunction
 
 function! s:Appcpl(A,P,L)
@@ -418,6 +447,28 @@ endfunction
 function! s:Mgmcpl(A,P,L)
   let dir = s:join('management', 'commands')
   return s:cpl_dir(dir, '*', ':t:r', a:A, 'v:val != "__init__"')
+endfunction
+
+function! s:Snakecpl(A,P,L)
+  if exists('g:loaded_snakeskin')
+    let ret = []
+    let spl = split(a:P)
+    let fn = s:relative_file(substitute(spl[0], '\u', '', 'g'))
+
+    if isdirectory(fn)
+      let dir = fnamemodify(fn, ':t')
+      if len(spl) == 1 || len(spl) <= 2 && a:P !~ '\s\+$'
+        return s:cpl_dir(dir, '*', ':t:r', a:A, 'v:val != "__init__"')
+      else
+        let fn = s:join(s:get_current_app(), dir, spl[1] . '.py')
+        return SnakeskinPythonCompletion(fn, spl[2:], a:A, a:P, a:L)
+      endif
+    endif
+
+    return SnakeskinPythonCompletion(fn, spl[1:], a:A, a:P, a:L)
+  else
+    return s:Appcpl(a:A,a:P,a:L)
+  endif
 endfunction
 
 " }}}
@@ -449,13 +500,22 @@ endfunction
 
 function! s:Managecpl(A,P,L)
   let default = "cleanup compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages reset runfcgi runserver shell sql sqlall sqlclear sqlcustom sqlflush sqlindexes sqlinitialdata sqlreset sqlsequencereset startapp startproject syncdb test testserver validate"
-  let cmds = split(default)
-  let cmds = extend(cmds, s:get_management_commands())
+  let cmds = extend(split(default), s:get_management_commands())
   return sort(filter(cmds, 'v:val =~# "^".a:A'))
 endfunction
 
 com! -nargs=+ -complete=customlist,s:Managecpl Reinhardt :call s:Manage(<f-args>)
 
+" }}}
+" Plugin integration {{{1
+" Snakeskin {{{2
+
+function! s:is_snakeskinable(name)
+  let l = ['admin', 'form', 'middle', 'model', 'test', 'url', 'util', 'view']
+  return index(l, a:name) != -1
+endfunction
+
+" }}}2
 " }}}
 " Initialization {{{1
 
