@@ -106,15 +106,17 @@ it!
     * [ ] Regexp filtering
 * [ ] JSON request to function, result in scratch buffer
 
-= Locale =
+= i18n =
 * [ ] Rmakemessages, Rcompilemessage, Rcm
     * [ ] Traceback to quickfix
     * [ ] Look at http://vim.sourceforge.net/scripts/script.php?script_id=695
-* [ ] Set current language editing
-    * [ ] Command for setting
-    * [ ] Completion
-* [ ] Get translated string echoed or to scratch
+* [X] Set current language editing
+    * [X] Command for setting
+    * [X] Completion
+* [X] Get translated string echoed or to scratch
 * [ ] Make and compile on write?
+* [ ] Linguist
+    * [ ] Omnicompletion for keys
 
 = Test running =
 * [ ] Quickfix for tracebacks
@@ -155,4 +157,4 @@ it!
     * [ ] What data?
 * [X] snakeskin
     * [ ] Powerline
-* [ ] linguist
+* [X] linguist

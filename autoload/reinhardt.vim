@@ -11,7 +11,7 @@ let g:autoloaded_reinhardt = '0.1'
 let s:cpo_save = &cpo
 set cpo&vim
 
-" Template finders {{{1
+" File finders {{{1
 
 function! s:find_template(str)
   for app in values(s:apps)
@@ -23,19 +23,45 @@ function! s:find_template(str)
 
   " Create a new in the current app; with directory creation
   " return s:new_template(a:str)
-  echo "No template found"
+  " echo "No template found"
   return ""
 endfunction
 
-function! s:FindDefinition()
-  " The default functionality of gf
-  if filereadable(expand("<cfile>"))
-    return expand("<cfile>")
+function! s:try_definitions()
+  " Extended functionality of gf; line number hacking
+  if filereadable(split(expand('<cWORD>'), ':')[0])
+    return expand('<cWORD>')
   endif
 
-  let str = s:cursorstr()
-  let res = s:find_template(str)
-  if res != ""|edit `=res`|endif
+  " The default functionality of gf
+  let cfile = expand("<cfile>")
+  if filereadable(cfile)
+    return cfile
+  endif
+
+  let res = s:find_template(cfile)
+  if res != "" | return res | endif
+
+  if exists('g:loaded_linguist')
+    let res = s:get_i18n_filepos(s:get_i18n_key())
+    if res != "" | return res | endif
+  endif
+  return ''
+endfunction
+
+function! s:FindDefinition(cmd, ...) abort
+  let res = s:try_definitions()
+  if res == ''
+    echo 'Nothing found under cursor, babe.'
+    return
+  endif
+
+  let spl = split(res, ':')
+  exe a:cmd spl[0]
+  if len(spl) == 2
+    call setpos('.', [0, spl[1], 0, 0])
+    normal z.
+  endif
 endfunction
 
 " }}}
@@ -93,30 +119,6 @@ function! s:error(str)
   echomsg "Error: ".a:str
   echohl None
   let v:errmsg = a:str
-endfunction
-
-function! s:get_current_lang()
-  if exists('g:reinhardt_lang')
-    return g:reinhardt_lang
-  endif
-
-  let app = s:get_current_app()
-
-  let dir = s:join(app, 'locale')
-  if app == "" || isdirectory(dir)
-    " No locale has been created yet, or we are not in an app. Default to english.
-    return 'en'
-  endif
-
-  let langs = split(globpath(dir, '*'), '\n')
-
-  if len(langs) == 0 || index('en', langs) >= 0
-    " There are english files, or no files at all. Default to english.
-    return 'en'
-  else
-    " There are languages, but none of them are english. Pick the first one.
-    return langs[0]
-  endif
 endfunction
 
 function! s:add_ft(ft, append)
@@ -192,26 +194,102 @@ function! s:get_management_commands()
 endfunction
 
 " }}}
-" Mappings {{{1
+" i18n {{{1
+
+function! s:get_current_lang() abort
+  if exists('g:reinhardt_lang')
+    return g:reinhardt_lang
+  endif
+
+  let langs = s:get_languages()
+  if len(langs) == 0 || index(langs, 'en') >= 0
+    " There are english files, or no files at all. Default to english.
+    return 'en'
+  else
+    " There are languages, but none of them are english. Pick the first one.
+    return langs[0]
+  endif
+endfunction
+
+function! s:get_lang_file() abort
+  let app = s:get_current_app()
+  if app == ""
+    return ""
+  endif
+  return s:join(app, 'locale', s:get_current_lang(), 'LC_MESSAGES', 'django.po')
+endfunction
+
+function! s:get_languages() abort
+  let app = s:get_current_app()
+  let dir = s:join(app, 'locale')
+
+  if app == "" || !isdirectory(dir)
+    " No languages; No locale has been created yet, or we are not in an app.
+    return []
+  endif
+
+  return map(split(globpath(dir, '*'), '\n'), 'fnamemodify(v:val, ":t")')
+endfunction
+
+function! s:switch_lang(lang)
+  let lang = a:lang
+  if a:lang == -1 || a:lang == 1
+    let langs = s:get_languages()
+    let idx = index(langs, s:get_current_lang())
+
+    if a:lang == -1
+      let lang = langs[a:lang + idx]
+    else
+      let lang = idx + 1 < len(langs) ? langs[idx + 1] : langs[0]
+    endif
+  endif
+
+  let g:reinhardt_lang = lang
+
+  if exists('g:loaded_linguist')
+    call s:LinguistPrint()
+  endif
+endfunction
+
+" }}}
+" Buffer setup {{{1
 
 function! s:altmap(name, key)
   let k = g:reinhardt_mapkey
   exe 'nmap <buffer> <silent> '.k.a:key.' :R'.a:name.'<cr>'
-  exe 'nmap <buffer> <silent> '.k.toupper(a:key).' :R'.a:name.' '
+  exe 'nmap <buffer> '.k.toupper(a:key).' :R'.a:name.' '
 endfunction
 
+function! s:addcmd(type, ...)
+  let cpl = a:0 ? a:1 : 'Snake'
+  let cmds = 'ESVT '
+  let cmd = ''
+
+  while cmds != ''
+    let s = 'com! -nargs=* -complete=customlist,s:'.cpl.'cpl R'.cmd.a:type.' '
+    let s = s . ':call s:Edit("'.a:type.'", "'.cmd.'", <f-args>)'
+    exe s
+
+    let cmd = strpart(cmds,0,1)
+    let cmds = strpart(cmds,1)
+  endwhile
+endfunction
+
+
 function! s:BufMappings()
-  nnoremap <buffer> <silent> <Plug>ReinhardtFind :<C-U>call <SID>FindDefinition()<CR>
+  nnoremap <buffer> <silent> <Plug>ReinhardtFind :<C-U>call <SID>FindDefinition('edit')<CR>
+  nnoremap <buffer> <silent> <Plug>ReinhardtNextLang :<C-U>call <SID>switch_lang(1)<CR>
+  nnoremap <buffer> <silent> <Plug>ReinhardtPrevLang :<C-U>call <SID>switch_lang(-1)<CR>
 
   if !hasmapto("<Plug>ReinhardtFind")
     nmap <buffer> gf <Plug>ReinhardtFind
   endif
 
-  command! -buffer -bar -nargs=? Rfind :call s:FindDefinition(<f-args>)
+  command! -buffer -bar -nargs=? Rfind :call s:FindDefinition('edit', <f-args>)
 
   if exists('g:reinhardt_mapkey')
     let k = g:reinhardt_mapkey
-    exe "nmap ".k."<space> :Rswitch "
+    exe "nmap <buffer> ".k."<space> :Rswitch "
 
     call s:altmap('admin', 'a')
     call s:altmap('fixture', 'x')
@@ -227,6 +305,31 @@ function! s:BufMappings()
     call s:altmap('util', 'i')
     call s:altmap('view', 'v')
   endif
+endfunction
+
+function! s:BufCommands()
+  com! -buffer -nargs=1 -complete=customlist,s:Appcpl  Rswitch :call s:switch_app(<f-args>)
+  com! -buffer -nargs=? -complete=customlist,s:Appcpl  Rcd     :call s:Cd('cd', <f-args>)
+  com! -buffer -nargs=? -complete=customlist,s:Appcpl  Rlcd    :call s:Cd('lcd', <f-args>)
+  com! -buffer -nargs=1 -complete=customlist,s:Langcpl Rlang   :call s:switch_lang(<f-args>)
+
+  com! -buffer -nargs=0 Rlangnext :call s:switch_lang(1)
+  com! -buffer -nargs=0 Rlangprev :call s:switch_lang(-1)
+
+  call s:addcmd('admin')
+  call s:addcmd('fixture', 'Fix')
+  call s:addcmd('form')
+  call s:addcmd('init')
+  call s:addcmd('locale', 'Lang')
+  call s:addcmd('manage', 'Mgm')
+  call s:addcmd('middle')
+  call s:addcmd('model')
+  call s:addcmd('static')
+  call s:addcmd('template', 'Tmp')
+  call s:addcmd('test')
+  call s:addcmd('url')
+  call s:addcmd('util')
+  call s:addcmd('view')
 endfunction
 
 " }}}
@@ -324,7 +427,7 @@ function! s:switch_file(kind, ...)
       return s:join(dir, a:1 . '.py')
     endif
 
-    return s:default_file(app, d)
+    return s:default_file(app, dir)
 
   elseif a:kind == "template"
     if a:0
@@ -362,40 +465,6 @@ function! s:Cd(cmd, ...)
   endif
 endfunction
 
-function! s:addcmd(type, ...)
-  let cpl = a:0 ? a:1 : 'Snake'
-  let cmds = 'ESVT '
-  let cmd = ''
-
-  while cmds != ''
-    let s = 'com! -nargs=* -complete=customlist,s:'.cpl.'cpl R'.cmd.a:type.' '
-    let s = s . ':call s:Edit("'.a:type.'", "'.cmd.'", <f-args>)'
-    exe s
-
-    let cmd = strpart(cmds,0,1)
-    let cmds = strpart(cmds,1)
-  endwhile
-endfunction
-
-com! -nargs=1 -complete=customlist,s:Appcpl Rswitch :call s:switch_app(<f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl Rcd  :call s:Cd('cd', <f-args>)
-com! -nargs=? -complete=customlist,s:Appcpl Rlcd :call s:Cd('lcd', <f-args>)
-
-call s:addcmd('admin')
-call s:addcmd('fixture', 'Fix')
-call s:addcmd('form')
-call s:addcmd('init')
-call s:addcmd('locale', 'Lang')
-call s:addcmd('manage', 'Mgm')
-call s:addcmd('middle')
-call s:addcmd('model')
-call s:addcmd('static')
-call s:addcmd('template', 'Tmp')
-call s:addcmd('test')
-call s:addcmd('url')
-call s:addcmd('util')
-call s:addcmd('view')
-
 " }}}
 " Completion {{{1
 
@@ -414,7 +483,7 @@ function! s:cpl_dir(path, glob, mod, A, ...)
   endif
 
   let l = split(globpath(path, a:glob), '\n')
-  let l = filter(l, '!isdirectory(v:val)')  " TODO: Es broken (breaks langcpl)
+  let l = filter(l, '!isdirectory(v:val)')
   let l = map(l, 'substitute(v:val, "'.path.s:slash.'", "", "")')
   if a:mod != ""
     let l = map(l, "fnamemodify(v:val, '".a:mod."')")
@@ -433,7 +502,9 @@ function! s:Appcpl(A,P,L)
 endfunction
 
 function! s:Langcpl(A,P,L)
-  return s:cpl_dir('locale', '*', ':t', a:A)
+  let l = s:get_languages()
+  let lang = s:get_current_lang()
+  return sort(filter(l, 'v:val =~# "^".a:A && v:val != lang'))
 endfunction
 
 function! s:Fixcpl(A,P,L)
@@ -510,10 +581,130 @@ com! -nargs=+ -complete=customlist,s:Managecpl Reinhardt :call s:Manage(<f-args>
 " Plugin integration {{{1
 " Snakeskin {{{2
 
-function! s:is_snakeskinable(name)
-  let l = ['admin', 'form', 'middle', 'model', 'test', 'url', 'util', 'view']
-  return index(l, a:name) != -1
-endfunction
+if exists('g:loaded_snakeskin')
+  function! s:is_snakeskinable(name)
+    let l = ['admin', 'form', 'middle', 'model', 'test', 'url', 'util', 'view']
+    return index(l, a:name) != -1
+  endfunction
+endif
+
+" }}}2
+" Linguist {{{2
+
+if exists('g:loaded_linguist')
+  function! s:get_i18n_filepos(key) abort
+    if a:key == ''
+      return ''
+    endif
+
+    let fn = s:get_lang_file()
+    let lnr = LinguistParse(fn).data[a:key][0]
+    return fn .':'. lnr
+  endfunction
+
+  function! s:get_i18n_key(...)
+    let line = a:0 ? a:1 : getline('.')
+    let q = "[\"']"
+    let rxp = '\<\(_\|ugettext\(_lazy\)\?\)('.q.'\(.\{-}\)'.q.')'
+    let m = matchlist(line, rxp)
+    if len(m) != 0
+      return m[3]
+    else
+      return ""
+    endif
+  endfunction
+
+  function! s:LinguistPrint() abort
+    let key = s:get_i18n_key()
+    if key != ""
+      let fn = fnamemodify(s:get_lang_file(), ':p')
+      if fn == ''
+        return
+      endif
+
+      redraw
+      call s:print_i18n_hud()
+
+      let data = LinguistParse(fn)
+      if !has_key(data, 'render')
+        return s:print_i18n_error('lang file not found')
+      endif
+
+      let render = data.render(key)
+      if render == {}
+        return s:print_i18n_error('key not found in lang file')
+      endif
+
+      if has_key(render, 'plural')
+        if key == render.plural.id
+          let msg = render.plural.str[-1]
+        else
+          let msg = render.plural.str[0]
+        endif
+      else
+        let msg = render.str
+      endif
+
+      if len(msg) > winwidth(0) - 12
+        let msg = strpart(msg, 0, winwidth(0) - 15) . '...'
+      endif
+
+      echon msg
+    else
+      echo
+    endif
+  endfunction
+
+  function! s:print_i18n_hud()
+    let lang = s:get_current_lang()
+    let langs = s:get_languages()
+    let idx = index(langs, lang)
+
+    echohl Delimiter
+    echon '<'
+
+    if len(langs) <= 2
+      echohl Keyword
+      echon lang
+
+      if len(langs) == 2
+        echohl Delimiter
+        echon '/'
+        echohl Comment
+        call remove(langs, idx)
+        echon langs[0]
+      endif
+    else
+      echohl Comment
+      echon langs[idx - 1]
+      echohl Delimiter
+      echon '/'
+      echohl Keyword
+      echon lang
+      echohl Delimiter
+      echon '/'
+      echohl Comment
+      echon idx + 1 < len(langs) ? langs[idx + 1] : langs[0]
+    endif
+
+    echohl Delimiter
+    echon '>'
+    echohl None
+    echon ' '
+  endfunction
+
+  function! s:print_i18n_error(s)
+    echohl Error
+    echon '<'.a:s.'>'
+    echohl None
+    return
+  endfunction
+
+  augroup reinhardtLinguist
+    au!
+    au CursorMoved,CursorMovedI *.py call s:LinguistPrint()
+  augroup END
+endif
 
 " }}}2
 " }}}
@@ -536,6 +727,7 @@ endfunction
 function! BufInit()
   call s:find_apps()
   call s:BufMappings()
+  call s:BufCommands()
 
   if &ft =~ 'python'
     call s:add_ft('django', 1)
