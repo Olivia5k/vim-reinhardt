@@ -28,9 +28,10 @@ function! s:find_template(str)
 endfunction
 
 function! s:try_definitions()
+  let cword = expand('<cWORD>')
   " Extended functionality of gf; line number hacking
-  if filereadable(split(expand('<cWORD>'), ':')[0])
-    return expand('<cWORD>')
+  if filereadable(split(cword, ':')[0])
+    return cword
   endif
 
   " The default functionality of gf
@@ -43,7 +44,7 @@ function! s:try_definitions()
   if res != "" | return res | endif
 
   if exists('g:loaded_linguist')
-    let res = s:get_i18n_filepos(s:get_i18n_key())
+    let res = s:get_i18n_filepos(s:get_i18n_key(cword))
     if res != "" | return res | endif
   endif
   return ''
@@ -605,13 +606,10 @@ if exists('g:loaded_linguist')
   function! s:get_i18n_key(...)
     let line = a:0 ? a:1 : getline('.')
     let q = "[\"']"
-    let rxp = '\<\(_\|ugettext\(_lazy\)\?\)('.q.'\(.\{-}\)'.q.')'
+    let rxp = '\<\%(_\|\%(n\|un\|u\|p\|np\)\?gettext\%(_lazy\)\?\)('.q.'\(.\{-}\)'.q.')'
     let m = matchlist(line, rxp)
-    if len(m) != 0
-      return m[3]
-    else
-      return ""
-    endif
+
+    return len(m) != 0 ? m[1] : ""
   endfunction
 
   function! s:LinguistPrint() abort
@@ -623,16 +621,16 @@ if exists('g:loaded_linguist')
       endif
 
       redraw
-      call s:print_i18n_hud()
+      let hudlen = s:i18n_hud()
 
       let data = LinguistParse(fn)
       if !has_key(data, 'render')
-        return s:print_i18n_error('lang file not found')
+        return s:i18n_error('lang file not found')
       endif
 
       let render = data.render(key)
       if render == {}
-        return s:print_i18n_error('key not found in lang file')
+        return s:i18n_error('key not found in lang file')
       endif
 
       if has_key(render, 'plural')
@@ -645,8 +643,9 @@ if exists('g:loaded_linguist')
         let msg = render.str
       endif
 
-      if len(msg) > winwidth(0) - 12
-        let msg = strpart(msg, 0, winwidth(0) - 15) . '...'
+      let safe = winwidth(0) - hudlen - 12
+      if len(msg) > safe
+        let msg = strpart(msg, 0, safe - 3) . '...'
       endif
 
       echon msg
@@ -655,10 +654,12 @@ if exists('g:loaded_linguist')
     endif
   endfunction
 
-  function! s:print_i18n_hud()
+  function! s:i18n_hud()
     let lang = s:get_current_lang()
     let langs = s:get_languages()
     let idx = index(langs, lang)
+    let len = 3 " Enclosing delimiters, ending space
+    let len += len(lang)
 
     echohl Delimiter
     echon '<'
@@ -673,6 +674,7 @@ if exists('g:loaded_linguist')
         echohl Comment
         call remove(langs, idx)
         echon langs[0]
+        let len += len(langs[0]) + 1
       endif
     else
       echohl Comment
@@ -684,16 +686,20 @@ if exists('g:loaded_linguist')
       echohl Delimiter
       echon '/'
       echohl Comment
-      echon idx + 1 < len(langs) ? langs[idx + 1] : langs[0]
+      let lang2 = idx + 1 < len(langs) ? langs[idx + 1] : langs[0]
+      echon lang2
+      let len += len(langs[idx - 1]) + len(lang2) + 2
     endif
 
     echohl Delimiter
     echon '>'
     echohl None
     echon ' '
+
+    return len
   endfunction
 
-  function! s:print_i18n_error(s)
+  function! s:i18n_error(s)
     echohl Error
     echon '<'.a:s.'>'
     echohl None
