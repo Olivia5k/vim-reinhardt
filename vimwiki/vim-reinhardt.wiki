@@ -11,11 +11,12 @@ it!
 = Project initialization =
 * [X] Determine root
     * [ ] Changing project
-* [.] Implement caching
+* [o] Implement caching
     * [ ] Store settings
     * [X] Store installed apps
-    * [ ] Store management commands
-    * [ ] Store test classes and methods
+    * [X] Store management commands
+        * [ ] Project commands are calculated; defaults are stored
+    * [-] Store test classes and methods (calculated with snakeskin)
     * [ ] url/view mappings
 
 = Base =
@@ -34,7 +35,7 @@ it!
 = Navigation =
 * [.] gf remapping
     * [X] gf
-        * [ ] Implement a better finder using actual cursor position
+        * [X] Implement a better finder using actual cursor position
     * [ ] ^Wf
     * [ ] ^Wgf
     * [X] Templates
@@ -109,6 +110,7 @@ it!
 = i18n =
 * [ ] Rmakemessages, Rcompilemessage, Rcm
     * [ ] Traceback to quickfix
+    * [ ] Maybe just use :make with a set compiler?
     * [ ] Look at http://vim.sourceforge.net/scripts/script.php?script_id=695
 * [X] Set current language editing
     * [X] Command for setting

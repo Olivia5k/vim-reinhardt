@@ -279,11 +279,20 @@ endfunction
 
 function! s:BufMappings()
   nnoremap <buffer> <silent> <Plug>ReinhardtFind :<C-U>call <SID>FindDefinition('edit')<CR>
+  nnoremap <buffer> <silent> <Plug>ReinhardtSplitFind :<C-U>call <SID>FindDefinition('split')<CR>
+  nnoremap <buffer> <silent> <Plug>ReinhardtVSplitFind :<C-U>call <SID>FindDefinition('vsplit')<CR>
+  nnoremap <buffer> <silent> <Plug>ReinhardtTabFind :<C-U>call <SID>FindDefinition('tabedit')<CR>
   nnoremap <buffer> <silent> <Plug>ReinhardtNextLang :<C-U>call <SID>switch_lang(1)<CR>
   nnoremap <buffer> <silent> <Plug>ReinhardtPrevLang :<C-U>call <SID>switch_lang(-1)<CR>
 
   if !hasmapto("<Plug>ReinhardtFind")
     nmap <buffer> gf <Plug>ReinhardtFind
+  endif
+  if !hasmapto("<Plug>ReinhardtSplitFind")
+    nmap <buffer> <C-W>f <Plug>ReinhardtSplitFind
+  endif
+  if !hasmapto("<Plug>ReinhardtTabFind")
+    nmap <buffer> <C-W>gf <Plug>ReinhardtTabFind
   endif
 
   command! -buffer -bar -nargs=? Rfind :call s:FindDefinition('edit', <f-args>)
