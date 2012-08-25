@@ -20,32 +20,29 @@ function! s:find_template(str)
       return fn
     endif
   endfor
-
-  " Create a new in the current app; with directory creation
-  " return s:new_template(a:str)
-  " echo "No template found"
-  return ""
+  return ''
 endfunction
 
 function! s:try_definitions()
   let cword = expand('<cWORD>')
-  " Extended functionality of gf; line number hacking
+  " The default functionality of gF
+  " TODO: Does this need the other examples of :he gF?
   if filereadable(split(cword, ':')[0])
     return cword
   endif
 
   " The default functionality of gf
-  let cfile = expand("<cfile>")
+  let cfile = expand('<cfile>')
   if filereadable(cfile)
     return cfile
   endif
 
   let res = s:find_template(cfile)
-  if res != "" | return res | endif
+  if res != '' | return res | endif
 
   if exists('g:loaded_linguist')
     let res = s:get_i18n_filepos(s:get_i18n_key(cword))
-    if res != "" | return res | endif
+    if res != '' | return res | endif
   endif
   return ''
 endfunction
@@ -73,24 +70,21 @@ function! s:cursorstr()
   let q = "[\"']"
   let res = matchlist(getline('.'), q.'\(\S*\)'.q)
   if len(res) == 0
-    return ""
+    return ''
   endif
   return res[1]
 endfunction
 
 function! s:get_current_app()
-  let fn = fnamemodify(bufname('%'), ":p")
+  let fn = fnamemodify(bufname('%'), ':p')
   while fn != g:reinhardt_root
-    let fn = fnamemodify(fn, ":h")
+    let fn = fnamemodify(fn, ':h')
     if s:is_app(fn)
       break
     endif
   endwhile
 
-  if fn != g:reinhardt_root
-    return s:relpath(fn)
-  endif
-  return ""
+  return fn != g:reinhardt_root ? s:relpath(fn) : ''
 endfunction
 
 function! s:relpath(path, ...)
@@ -99,10 +93,10 @@ function! s:relpath(path, ...)
   if a:0
     " Extra argument. Make result relative to that path.
     let rel = fnamemodify(a:1, ':p')
-    return substitute(path, rel, '', '')  " Make it relative!
+    return substitute(path, rel, '', '')
   else
     let rel = getcwd() . s:slash
-    let rel = substitute(path, rel, '', '')  " Make it relative!
+    let rel = substitute(path, rel, '', '')
 
     " If getcwd() is the same as the target, the string would be empty. This
     " would be a no-go for s:get_current_app and the like, who returns empty
@@ -117,7 +111,7 @@ endfunction
 
 function! s:error(str)
   echohl ErrorMsg
-  echomsg "Error: ".a:str
+  echomsg 'Error: '.a:str
   echohl None
   let v:errmsg = a:str
 endfunction
@@ -135,7 +129,7 @@ function! s:add_ft(ft, append)
     else
       let fts = insert(fts, a:ft)
     endif
-    exec "set ft=". join(fts, '.')
+    exec 'set ft='. join(fts, '.')
   endif
 endfunction
 
@@ -165,11 +159,7 @@ function! s:relative_file(fn, ...)
 
   let fn = s:join(a:0 ? s:apps[a:1] : s:get_current_app(), base)
 
-  if isdirectory(fn)
-    return fn
-  else
-    return fn . '.py'
-  endif
+  return isdirectory(fn) ? fn : fn.'.py'
 endfunction
 
 function! s:join(...)
@@ -177,7 +167,7 @@ function! s:join(...)
   let ret = []
   for str in a:000  " The a: vars are not mutable. See E742.
     " Remove extra slashes
-    let ret = add(ret, substitute(str, s:slash.'\+$', "", ""))
+    let ret = add(ret, substitute(str, s:slash.'\+$', '', ''))
   endfor
 
   return join(ret, s:slash)
@@ -214,8 +204,8 @@ endfunction
 
 function! s:get_lang_file() abort
   let app = s:get_current_app()
-  if app == ""
-    return ""
+  if app == ''
+    return ''
   endif
   return s:join(app, 'locale', s:get_current_lang(), 'LC_MESSAGES', 'django.po')
 endfunction
@@ -224,7 +214,7 @@ function! s:get_languages() abort
   let app = s:get_current_app()
   let dir = s:join(app, 'locale')
 
-  if app == "" || !isdirectory(dir)
+  if app == '' || !isdirectory(dir)
     " No languages; No locale has been created yet, or we are not in an app.
     return []
   endif
@@ -285,13 +275,13 @@ function! s:BufMappings()
   nnoremap <buffer> <silent> <Plug>ReinhardtNextLang :<C-U>call <SID>switch_lang(1)<CR>
   nnoremap <buffer> <silent> <Plug>ReinhardtPrevLang :<C-U>call <SID>switch_lang(-1)<CR>
 
-  if !hasmapto("<Plug>ReinhardtFind")
+  if !hasmapto('<Plug>ReinhardtFind')
     nmap <buffer> gf <Plug>ReinhardtFind
   endif
-  if !hasmapto("<Plug>ReinhardtSplitFind")
+  if !hasmapto('<Plug>ReinhardtSplitFind')
     nmap <buffer> <C-W>f <Plug>ReinhardtSplitFind
   endif
-  if !hasmapto("<Plug>ReinhardtTabFind")
+  if !hasmapto('<Plug>ReinhardtTabFind')
     nmap <buffer> <C-W>gf <Plug>ReinhardtTabFind
   endif
 
@@ -299,7 +289,7 @@ function! s:BufMappings()
 
   if exists('g:reinhardt_mapkey')
     let k = g:reinhardt_mapkey
-    exe "nmap <buffer> ".k."<space> :Rswitch "
+    exe 'nmap <buffer> '.k.'<space> :Rswitch '
 
     call s:altmap('admin', 'a')
     call s:altmap('fixture', 'x')
@@ -349,7 +339,7 @@ function! s:Edit(name, cmd, ...) abort
   let args = extend([a:name], a:000)
   let fn = call('s:switch_file', args)
 
-  if fn == ""
+  if fn == ''
     if a:0 && has_key(s:apps, a:1)
       return s:switch_app(a:1, a:name)
     endif
@@ -360,12 +350,12 @@ function! s:Edit(name, cmd, ...) abort
 
   let cmd = 'edit'
 
-  if a:cmd == "S"
-    let cmd = "split"
-  elseif a:cmd == "V"
-    let cmd = "vsplit"
-  elseif a:cmd == "T"
-    let cmd = "tabedit"
+  if a:cmd == 'S'
+    let cmd = 'split'
+  elseif a:cmd == 'V'
+    let cmd = 'vsplit'
+  elseif a:cmd == 'T'
+    let cmd = 'tabedit'
   endif
 
   let args = a:000
@@ -384,54 +374,52 @@ endfunction
 
 function! s:switch_app(name, ...)
   if !has_key(s:apps, a:name)
-    call s:error(a:name . " - No such app.")
-    return
+    return s:error(a:name . ' - No such app.')
   endif
 
   let app = s:apps[a:name]
   let cur = s:get_current_app()
-  let fn = "models.py"
-  let msg = ""
+  let fn = 'models.py'
+  let msg = ''
 
   if a:0
     let fn = s:relative_file(a:1)
-  elseif cur != ""
+  elseif cur != ''
     let nfn = s:relpath(bufname('%'), cur)
-    " let nfn = substitute(cf, cur . s:slash, "", "")
     if filereadable(s:join(app, nfn))
       let fn = nfn
     else
-      let msg = nfn . " not found in ".a:name.". Going to models.py."
+      let msg = nfn . ' not found in '.a:name.'. Going to models.py.'
     endif
   else
-    let msg = "Currently not in an app. Going to models.py."
+    let msg = 'Currently not in an app. Going to models.py.'
   endif
 
   silent edit `=s:join(s:relpath(app), fn)`
 
-  if msg != ""
+  if msg != ''
     echo msg
   endif
 endfunction
 
 function! s:switch_file(kind, ...)
   let app = s:get_current_app()
-  if app == ""
-    return ""
+  if app == ''
+    return ''
   endif
 
-  if a:kind == "locale"
+  if a:kind == 'locale'
     let lang = a:0 ? a:1 : s:get_current_lang()
     return s:join('locale', lang, 'LC_MESSAGES', 'django.po')
 
-  elseif a:kind == "fixture"
+  elseif a:kind == 'fixture'
     if a:0
       return s:join('fixtures', a:1)
     endif
 
     return s:default_file(app, 'fixtures', 'initital_data.json')
 
-  elseif a:kind == "manage"
+  elseif a:kind == 'manage'
     let dir = s:join('management', 'commands')
     if a:0
       return s:join(dir, a:1 . '.py')
@@ -439,14 +427,14 @@ function! s:switch_file(kind, ...)
 
     return s:default_file(app, dir)
 
-  elseif a:kind == "template"
+  elseif a:kind == 'template'
     if a:0
       return s:join('templates', a:1)
     endif
 
     return s:default_file(app, 'templates', 'base.html')
 
-  elseif a:kind == "init"
+  elseif a:kind == 'init'
     return '__init__.py'
 
   else
@@ -458,8 +446,7 @@ function! s:Cd(cmd, ...)
   let path = g:reinhardt_root
   if a:0
     if !has_key(s:apps, a:1)
-      call s:error(a:1 . " - No such app.")
-      return
+      return s:error(a:1 . ' - No such app.')
     endif
 
     let path = s:apps[a:1]
@@ -470,7 +457,7 @@ function! s:Cd(cmd, ...)
 
   " If the path is empty, we are already at the destination. An empty l?cd
   " would go to the users $HOME, which is not what we want.
-  if path != ""
+  if path != ''
     exe a:cmd path
   endif
 endfunction
@@ -483,7 +470,7 @@ function! s:cpl_dir(path, glob, mod, A, ...)
   let app = s:get_current_app()
   let path = s:join(app, a:path)
 
-  if app == "" || !isdirectory(path)
+  if app == '' || !isdirectory(path)
     return []
   endif
 
@@ -494,20 +481,17 @@ function! s:cpl_dir(path, glob, mod, A, ...)
 
   let l = split(globpath(path, a:glob), '\n')
   let l = filter(l, '!isdirectory(v:val)')
-  let l = map(l, 'substitute(v:val, "'.path.s:slash.'", "", "")')
-  if a:mod != ""
+  let l = map(l, 'substitute(v:val, "'.path.s:slash.'", '', '')')
+  if a:mod != ''
     let l = map(l, "fnamemodify(v:val, '".a:mod."')")
   endif
   let l = filter(l, f)
-  if len(l) == 1
-    return [l[0] . ' ']
-  endif
-  return l
+  return len(l) == 1 ? [l[0].' '] : l
 endfunction
 
 function! s:Appcpl(A,P,L)
   " Complete all apps except the current one
-  let appname = fnamemodify(s:get_current_app(), ":t")
+  let appname = fnamemodify(s:get_current_app(), ':t')
   return sort(filter(keys(s:apps), 'v:val =~# "^".a:A && v:val != appname'))
 endfunction
 
@@ -566,11 +550,11 @@ function! s:get_manage()
 
   let manage = s:join(g:reinhardt_root, manage)
   if !executable(manage)
-    let python = "python"
+    let python = 'python'
     if executable('python2')
-      let python = "python2"
+      let python = 'python2'
     endif
-    let manage = python . " " . manage
+    let manage = python . ' ' . manage
   endif
   return manage
 endfunction
@@ -580,7 +564,7 @@ function! s:Manage(...)
 endfunction
 
 function! s:Managecpl(A,P,L)
-  let default = "cleanup compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages reset runfcgi runserver shell sql sqlall sqlclear sqlcustom sqlflush sqlindexes sqlinitialdata sqlreset sqlsequencereset startapp startproject syncdb test testserver validate"
+  let default = 'cleanup compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages reset runfcgi runserver shell sql sqlall sqlclear sqlcustom sqlflush sqlindexes sqlinitialdata sqlreset sqlsequencereset startapp startproject syncdb test testserver validate'
   let cmds = extend(split(default), s:get_management_commands())
   return sort(filter(cmds, 'v:val =~# "^".a:A'))
 endfunction
@@ -615,21 +599,22 @@ if exists('g:loaded_linguist')
   function! s:get_i18n_key(...)
     let line = a:0 ? a:1 : getline('.')
     let q = "[\"']"
+    " TODO: Research how to do real regexp on the above group
     let rxp = '\<\%(_\|\%(n\|un\|u\|p\|np\)\?gettext\%(_lazy\)\?\)('.q.'\(.\{-}\)'.q.')'
     let m = matchlist(line, rxp)
 
-    return len(m) != 0 ? m[1] : ""
+    return len(m) != 0 ? m[1] : ''
   endfunction
 
   function! s:LinguistPrint() abort
+    redraw
     let key = s:get_i18n_key()
-    if key != ""
+    if key != ''
       let fn = fnamemodify(s:get_lang_file(), ':p')
       if fn == ''
         return
       endif
 
-      redraw
       let hudlen = s:i18n_hud()
 
       let data = LinguistParse(fn)
@@ -658,8 +643,6 @@ if exists('g:loaded_linguist')
       endif
 
       echon msg
-    else
-      echo
     endif
   endfunction
 
@@ -670,40 +653,34 @@ if exists('g:loaded_linguist')
     let len = 3 " Enclosing delimiters, ending space
     let len += len(lang)
 
-    echohl Delimiter
-    echon '<'
+    let d = 'Delimiter' " For delimiters
+    let c = 'Comment' " For non-active languages
+    let k = 'Keyword' " For the active language
 
+    exe 'echoh' d '| echon "<"'
     if len(langs) <= 2
-      echohl Keyword
-      echon lang
+      exe 'echoh' k '| echon "'.lang.'"'
 
       if len(langs) == 2
-        echohl Delimiter
-        echon '/'
-        echohl Comment
         call remove(langs, idx)
-        echon langs[0]
-        let len += len(langs[0]) + 1
+        let lang1 = langs[0]
+        let len += len(lang1) + 1
+
+        " la/l1
+        exe 'echoh' d '| echon "/"' '| echoh' c '| echon' lang1
       endif
     else
-      echohl Comment
-      echon langs[idx - 1]
-      echohl Delimiter
-      echon '/'
-      echohl Keyword
-      echon lang
-      echohl Delimiter
-      echon '/'
-      echohl Comment
+      let lang1 = langs[idx - 1]
       let lang2 = idx + 1 < len(langs) ? langs[idx + 1] : langs[0]
-      echon lang2
-      let len += len(langs[idx - 1]) + len(lang2) + 2
+      let len += len(lang1) + len(lang2) + 2
+
+      " l1/la/l2
+      exe 'echoh' c '| echon "'.lang1.'"' '| echoh' d '| echon "/"'
+            \ '| echoh' k '| echon "'.lang.'"' '| echoh' d '| echon "/"'
+            \ '| echoh' c '| echon "'.lang2.'"'
     endif
 
-    echohl Delimiter
-    echon '>'
-    echohl None
-    echon ' '
+    exe 'echoh' d '| echon ">"' '| echoh None' '| echon " "'
 
     return len
   endfunction
@@ -712,7 +689,6 @@ if exists('g:loaded_linguist')
     echohl Error
     echon '<'.a:s.'>'
     echohl None
-    return
   endfunction
 
   augroup reinhardtLinguist
@@ -731,7 +707,7 @@ function! s:find_apps(...)
   for dir in filter(split(globpath(path, '*'), '\n'), 'isdirectory(v:val)')
     if filereadable(s:join(dir, '__init__.py')) " Skip anything non-python
       if s:is_app(dir)
-        let s:apps[fnamemodify(dir, ":t")] = dir
+        let s:apps[fnamemodify(dir, ':t')] = dir
       else
         call s:find_apps(dir)
       endif
