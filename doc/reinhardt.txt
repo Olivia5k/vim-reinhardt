@@ -1,0 +1,188 @@
+*reinhardt.txt*	Plugin for integrating with Django applications
+
+Author:  Lowe Thiderman <http://github.com/thiderman>
+
+|reinhardt-introduction|		Introduction and Feature Summary
+|reinhardt-commands|		General Commands
+|reinhardt-navigation|		Navigation
+|reinhardt-gf|			File Under Cursor - gf
+|reinhardt-i18n|			Internationalization helpers
+|reinhardt-integration|		Integration to other vim plugins
+|reinhardt-license|		License
+
+This plugin is only available if 'compatible' is not set.
+
+{Vi does not have any of this}
+
+INTRODUCTION					*reinhardt*
+						*reinhardt-introduction*
+
+Whenever you edit a file in a Django application, this plugin will be
+automatically activated.  This sets various options and defines a few
+buffer-specific commands.
+
+This plugin has been highly inspired by the vim-rails plugin by Tim Pope,
+which is very evident if one takes just a bare little look.
+
+If you are in a hurry to get started, with a minimal amount of reading, you
+are encouraged to at least skim through the headings and command names in this
+file, to get a better idea of what is offered.  If you only read one thing,
+make sure it is the navigation section: |reinhardt-navigation|.
+
+NOTE: It should be noted that this plugin is currently only in its infancy.
+While it is already possible to use it for day-to-day development, it is under
+heavy development and many things will be added or changed. See the included
+todo file under vimwiki/reinhardt.vimwiki for more information.
+
+GENERAL COMMANDS				*reinhardt-commands*
+
+All commands are buffer local, unless otherwise stated.  This means you must
+actually edit a file from a reinhardt application.
+
+						*reinhardt-:Reinhardt*
+:Reinhardt		The only global command.  It is a wrapper around
+			manage.py, with completion for the default commands
+			and any management commands defined by applications
+			found in the current project (if any).
+
+						*reinhardt-:Rcd*
+:Rcd [{directory}]	|:cd| to /path/to/app/{directory}.
+			Without arguments, |:cd| to project root.
+
+						*reinhardt-:Rlcd*
+:Rlcd [{directory}]	|:lcd| to /path/to/app/{directory}.
+			Without arguments, |:lcd| to project root.
+
+
+NAVIGATION					*reinhardt-navigation*
+
+Navigation is where the real power of this plugin lies.  Efficient use of the
+following features will greatly ease navigating the Django file structure.
+
+File Under Cursor - gf ~
+						*reinhardt-gf*
+The |gf| command, which normally edits the current file under the cursor, has
+been remapped to take context into account. |CTRL-W_f| (open in new window)
+and |CTRL-W_gf| (open in new tab) are also remapped.
+
+Example uses of |gf|, and where they might lead.
+(* indicates cursor position)
+>
+	index*.html
+<	app/templates/index.html ~
+>
+	_('translation-k*ey')
+<	app/locale/en/LC_MESSAGES/django.po; row of key definition ~
+
+
+File Type Navigation Commands ~
+						*reinhardt-type-navigation*
+Each of the upcoming commands takes an optional argument (with tab completion)
+but defaults to a reasonable guess.  Commands that default to the current
+model or controller generally behave like you'd expect in other file types.
+
+Each of the following commands has variants for splitting, vertical splitting,
+and opening in a new tab.  For :Rmodel, those variants would be :RSmodel,
+:RVmodel and :RTmodel.  There is also :REmodel which is a synonym for :Rmodel
+(future versions might allow customization of the behavior of :Rmodel).
+
+:Radmin						|reinhardt-:Radmin|
+:Rfixture					|reinhardt-:Rfixture|
+:Rform						|reinhardt-:Rform|
+:Rlocale					|reinhardt-:Rlocale|
+:Rmanage					|reinhardt-:Rmanage|
+:Rmiddle					|reinhardt-:Rmiddle|
+:Rmodel						|reinhardt-:Rmodel|
+:Rmodel						|reinhardt-:Rmodel|
+:Rstatic					|reinhardt-:Rstatic|
+:Rtemplate					|reinhardt-:Rtemplate|
+:Rtest						|reinhardt-:Rtest|
+:Rurl						|reinhardt-:Rurl|
+:Rutil						|reinhardt-:Rutil|
+:Rview						|reinhardt-:Rview|
+
+						*reinhardt-:Radmin*
+						*reinhardt-:Rform*
+						*reinhardt-:Rmiddle*
+						*reinhardt-:Rmodel*
+						*reinhardt-:Rtest*
+						*reinhardt-:Rurl*
+						*reinhardt-:Rutil*
+						*reinhardt-:Rview*
+:Radmin [{...}]		Edit the Python source file for the given command.
+			If the file happens to be a directory (e.g. views/
+			rather than views.py) browse the directory instead.
+			If |snakeskin| is installed, the commands gain
+			completion for functions and classes inside the files.
+			See |reinhardt-snakeskin| for more detils.
+			If |snakeskin| is not installed, the commands take one
+			app name as an argument and switches to that app
+			before opening the file.
+
+						*reinhardt-:Rfixture*
+:Rfixture [{name}]	With no argument, open fixtures/initial_data.json.
+			If intial_data.json is not the only file in the
+			directory, browse the directory.
+			If an argument is given, open fixtures/{name}.
+
+						*reinhardt-:Rlocale*
+:Rlocale [{lang}]	Edit the django.po file for the current language.
+			Takes an optional language code as an argument and
+			switches the current language to it before opening
+			the file.
+			If no argument is given and no language is selected,
+			choose the first one in app/locale.  If none exists,
+			default to english.
+
+INTEGRATION					*reinhardt-integration*
+
+reinhardt provides integration into other vim plugins.
+
+						*reinhardt-snakeskin*
+Snakeskin (https://github.com/thiderman/vim-snakeskin)
+Provides quick analysis of Python file structures without requiring |+python|.
+If found by reinhardt, the Python file family of navigation commands
+(|:Rmodel| etc) will gain navigation and tab completion for classes and
+functions.
+
+:Rmodel Blog get_absolute_url ~
+Would take you to the definition of get_absolute_url under the class Blog in
+your models.
+
+						*reinhardt-linguist*
+Linguist (https://github.com/thiderman/vim-linguist)
+Provides quick analysis of .po file structures.
+If found by reinhardt, it will gain additional i18n powers;
+The |reinhardt-gf| command will gain navigation to translation keys in .po
+files for the current language and a translation HUD message echoed whenever
+on a row containing a translation string.
+(See http://quickfast.ninjaloot.se/img/i18n.png for an example.)
+
+Having linguist will also define these commands:
+
+						*reinhardt-:Rlang*
+:Rlang {lang}		Switches the current language to {lang}.
+
+						*reinhardt-:Rlangnext*
+						*reinhardt-:Rlangprev*
+:Rlangprev		Cycles to the next available language. Uses
+			directories under app/locale to determine what
+			languages to cycle between.
+
+
+ABOUT					*reinhardt-about* *reinhardt-plugin-author*
+
+This plugin was written by Lowe Thiderman.
+Email all comments, complaints, and compliments to him at
+lowe.thiderman at gmail. com.
+
+Bugs can be reported and the very latest development version can be retrieved
+from GitHub:
+    https://github.com/thiderman/vim-reinhardt
+    git clone git://github.com/thiderman/vim-reinhardt.git
+
+						*reinhardt-license*
+Copyright (c) Lowe Thiderman.  Distributed under the same terms as Vim itself.
+See |license|.
+
+ vim:tw=78:ts=8:ft=help:norl:noet:sts=8:sw=8

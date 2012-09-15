@@ -42,6 +42,7 @@ it!
     * [ ] i18n
     * [ ] Views
     * [ ] Find view by URL
+    * [ ] Rope integration
 * [O] Alternating
     * [X] Fix pathnames to be relative
     * [X] Apps
@@ -78,6 +79,12 @@ it!
     * [X] cd to app
     * [X] cd to project root
 
+= Boilerplates =
+* [ ] management commands
+* [ ] empty urls
+* [ ] empty admin
+    * [ ] generate from models
+* empty models
 = manage.py =
 * [X] Determine binary
     * [X] manage.py
@@ -128,6 +135,13 @@ it!
     * [ ] Method
     * [ ] Class
     * [ ] File
+
+= Syntax highlighting =
+* [ ] Django internals
+    * [ ] request
+    * [ ] models.
+    * [ ] forms
+    * [ ] admins
 
 = Python support =
 * [ ] Support +python
