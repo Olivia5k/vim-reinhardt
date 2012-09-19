@@ -18,6 +18,9 @@ it!
         * [ ] Project commands are calculated; defaults are stored
     * [-] Store test classes and methods (calculated with snakeskin)
     * [ ] url/view mappings
+* [ ] Implement non-project initialisation
+    * [ ] Make g:reinhardt_root be buffer local
+    * [ ] Init on app finding
 
 = Base =
 * [X] Correctly set the python.django filetype

@@ -332,6 +332,18 @@ function! s:BufCommands()
   call s:addcmd('view')
 endfunction
 
+function! s:BufSyntax()
+  if &ft =~ 'django'
+    syntax keyword pythonDjangoKeyword request
+  endif
+
+  call s:HiDefaults()
+endfunction
+
+function! s:HiDefaults()
+  hi def link pythonDjangoKeyword      Keyword
+endfunction
+
 " }}}
 " Alternating and navigation {{{1
 
@@ -717,14 +729,16 @@ endfunction
 
 function! BufInit()
   call s:find_apps()
-  call s:BufMappings()
-  call s:BufCommands()
 
   if &ft =~ 'python'
     call s:add_ft('django', 1)
   elseif &ft =~ 'x\?html\?'
     call s:add_ft('htmldjango', 0)
   endif
+
+  call s:BufMappings()
+  call s:BufCommands()
+  call s:BufSyntax()
 endfunction
 
 exe 'map <Plug>xsid <SID>|let s:sid=matchstr(maparg("<Plug>xsid"), "\\d\\+_")|unmap <Plug>xsid'
