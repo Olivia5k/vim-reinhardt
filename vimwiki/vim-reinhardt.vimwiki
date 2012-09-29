@@ -172,6 +172,8 @@ it!
 * [ ] Snipmate? (do people still use snipmate?)
 * [ ] dbext
     * [ ] Can it be done without +python? Can db settings be found?
+* [ ] Surround
+    * [ ] Yank from the django wiki vim page
 * [ ] powerline
     * [ ] What data?
 * [X] snakeskin
