@@ -13,9 +13,7 @@ Further features below:
   context and knows about templates and i18n keys.  There are
   commands defined for moving between all the key files in a Django project;
   `:Rmodel` for models, `:Rview` for views etc. Everything has tab completion
-  on steroids. Futhermore, `gf` has extended context and knows about
-  Django templates.
-  `:help reinhardt-navigation`
+  on steroids. `:help reinhardt-navigation`
 
 * manage.py wrapping with tab completion for the default commands and any
   command that your project defines.
