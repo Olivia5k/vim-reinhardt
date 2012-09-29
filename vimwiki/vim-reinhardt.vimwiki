@@ -18,30 +18,32 @@ it!
         * [ ] Project commands are calculated; defaults are stored
     * [-] Store test classes and methods (calculated with snakeskin)
     * [ ] url/view mappings
-* [o] Implement non-project initialisation
+* [X] Implement non-project initialisation
     * [X] Make g:reinhardt_root be buffer local
-    * [ ] Init on app finding
-        * [ ] Setup project as well
+    * [X] Init on app finding
+        * [X] Setup project as well
 
 = Base =
 * [X] Correctly set the python.django filetype
     * [X] htmldjango.html
+    * [ ] Research why Fugitive commands reset the filetype to django only.
+* [ ] Move snakeskin and linguist into the project
 
 = Documentation =
-* [ ] Start writing
-* [ ] Intro
+* [X] Start writing
+* [X] Intro
 * [ ] Philosophy
 * [ ] Tribute
-* [ ] Commands
-* [ ] Mappings
+* [X] Commands
+* [X] Mappings
 * [ ] External plugins
 
 = Navigation =
-* [.] gf remapping
+* [o] gf remapping
     * [X] gf
         * [X] Implement a better finder using actual cursor position
-    * [ ] ^Wf
-    * [ ] ^Wgf
+    * [X] ^Wf
+    * [X] ^Wgf
     * [X] Templates
     * [ ] i18n
     * [ ] Views
@@ -146,11 +148,13 @@ it!
     * [ ] Method
     * [ ] Class
     * [ ] File
+* [ ] Add functionality into Rtest?
 
 = Syntax highlighting =
-* [ ] Django internals
-    * [ ] request
-    * [ ] models.
+* [.] Django internals
+    * [X] request
+    * [ ] models (use snakeskin?)
+    * [ ] Model.object.methods()
     * [ ] forms
     * [ ] admins
 

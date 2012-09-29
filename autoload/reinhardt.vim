@@ -337,6 +337,27 @@ function! s:BufCommands()
   call s:addcmd('view')
 endfunction
 
+function! s:BufFiletypes()
+  if &ft =~ 'python'
+    call s:add_ft('django', 1)
+  elseif &ft =~ 'x\?html\?'
+    call s:add_ft('htmldjango', 0)
+  endif
+endfunction
+
+function! s:BufVariables()
+  let paths = []
+
+  if exists('b:reinhardt_app')
+    let paths = add(paths, s:relpath(b:reinhardt_app))
+  endif
+  if exists('b:reinhardt_root')
+    let paths = add(paths, s:relpath(b:reinhardt_root))
+  endif
+
+  exe "setlocal path=" . join(paths, ',')
+endfunction
+
 function! s:BufSyntax()
   if &ft =~ 'django'
     syntax keyword pythonDjangoKeyword request
@@ -755,15 +776,11 @@ function! BufInit()
     call s:find_apps()
   endif
 
-  if &ft =~ 'python'
-    call s:add_ft('django', 1)
-  elseif &ft =~ 'x\?html\?'
-    call s:add_ft('htmldjango', 0)
-  endif
-
-  call s:BufMappings()
-  call s:BufCommands()
+  call s:BufFiletypes()
   call s:BufSyntax()
+  call s:BufVariables()
+  call s:BufCommands()
+  call s:BufMappings()
 endfunction
 
 if !exists('s:apps')
