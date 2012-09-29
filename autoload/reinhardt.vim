@@ -77,14 +77,14 @@ endfunction
 
 function! s:get_current_app()
   let fn = fnamemodify(bufname('%'), ':p')
-  while fn != g:reinhardt_root
+  while fn != b:reinhardt_root
     let fn = fnamemodify(fn, ':h')
     if s:is_app(fn)
       break
     endif
   endwhile
 
-  return fn != g:reinhardt_root ? s:relpath(fn) : ''
+  return fn != b:reinhardt_root ? s:relpath(fn) : ''
 endfunction
 
 function! s:relpath(path, ...)
@@ -455,7 +455,7 @@ function! s:switch_file(kind, ...)
 endfunction
 
 function! s:Cd(cmd, ...)
-  let path = g:reinhardt_root
+  let path = b:reinhardt_root
   if a:0
     if !has_key(s:apps, a:1)
       return s:error(a:1 . ' - No such app.')
@@ -554,13 +554,13 @@ endfunction
 function! s:get_manage()
   let manage = 'manage.py'
   if exists('g:reinhardt_binaries')
-    if has_key(g:reinhardt_binaries, g:reinhardt_root)
-      let manage = g:reinhardt_binaries[g:reinhardt_root]
-      return fnamemodify(s:join(g:reinhardt_root, manage), ':p')
+    if has_key(g:reinhardt_binaries, b:reinhardt_root)
+      let manage = g:reinhardt_binaries[b:reinhardt_root]
+      return fnamemodify(s:join(b:reinhardt_root, manage), ':p')
     endif
   endif
 
-  let manage = s:join(g:reinhardt_root, manage)
+  let manage = s:join(b:reinhardt_root, manage)
   if !executable(manage)
     let python = 'python'
     if executable('python2')
@@ -715,7 +715,7 @@ endif
 
 function! s:find_apps(...)
   " Recursively test for Django apps, default to the app root
-  let path = a:0 ? a:1 : g:reinhardt_root
+  let path = a:0 ? a:1 : b:reinhardt_root
   for dir in filter(split(globpath(path, '*'), '\n'), 'isdirectory(v:val)')
     if filereadable(s:join(dir, '__init__.py')) " Skip anything non-python
       if s:is_app(dir)

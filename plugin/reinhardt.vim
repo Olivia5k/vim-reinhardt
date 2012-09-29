@@ -29,7 +29,7 @@ function! s:autoload()
 endfunction
 
 function! s:Detect(filename)
-  if exists('g:reinhardt_root')
+  if exists('b:reinhardt_root')
     return BufInit()
   endif
 
@@ -40,8 +40,8 @@ function! s:Detect(filename)
     let ofn = fn
     let fn = fnamemodify(fn, ":h")
 
-    if filereadable(fn . '/settings.py') && filereadable(fn . '/manage.py')
-      let g:reinhardt_root = fn
+    if filereadable(fn . '/manage.py')
+      let b:reinhardt_root = fn
       call s:autoload()
       call BufInit()
       break
