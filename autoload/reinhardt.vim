@@ -493,7 +493,7 @@ function! s:cpl_dir(path, glob, mod, A, ...)
 
   let l = split(globpath(path, a:glob), '\n')
   let l = filter(l, '!isdirectory(v:val)')
-  let l = map(l, 'substitute(v:val, "'.path.s:slash.'", '', '')')
+  let l = map(l, 'substitute(v:val, "'.path.s:slash.'", "", "")')
   if a:mod != ''
     let l = map(l, "fnamemodify(v:val, '".a:mod."')")
   endif
