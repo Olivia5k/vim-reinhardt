@@ -29,7 +29,7 @@ function! s:autoload()
 endfunction
 
 function! s:Detect(filename)
-  if exists('b:reinhardt_root')
+  if exists('b:reinhardt_root') || exists('b:reinhardt_app')
     return BufInit()
   endif
 
@@ -40,13 +40,18 @@ function! s:Detect(filename)
     let ofn = fn
     let fn = fnamemodify(fn, ":h")
 
-    if filereadable(fn . '/manage.py')
+    if filereadable(fn . '/models.py')
+      let b:reinhardt_app = fn
+    elseif filereadable(fn . '/manage.py')
       let b:reinhardt_root = fn
-      call s:autoload()
-      call BufInit()
       break
     endif
   endwhile
+
+  if exists('b:reinhardt_root') || exists('b:reinhardt_app')
+    call s:autoload()
+    call BufInit()
+  endif
 endfunction
 
 augroup reinhardtDetect

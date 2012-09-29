@@ -76,6 +76,11 @@ function! s:cursorstr()
 endfunction
 
 function! s:get_current_app()
+  if !exists('b:reinhardt_root')
+    " If there is not, the current app is the only one.
+    return b:reinhardt_app
+  endif
+
   let fn = fnamemodify(bufname('%'), ':p')
   while fn != b:reinhardt_root
     let fn = fnamemodify(fn, ':h')
@@ -311,8 +316,8 @@ function! s:BufCommands()
   com! -buffer -nargs=1 -complete=customlist,s:Appcpl  Rswitch :call s:switch_app(<f-args>)
   com! -buffer -nargs=? -complete=customlist,s:Appcpl  Rcd     :call s:Cd('cd', <f-args>)
   com! -buffer -nargs=? -complete=customlist,s:Appcpl  Rlcd    :call s:Cd('lcd', <f-args>)
-  com! -buffer -nargs=1 -complete=customlist,s:Langcpl Rlang   :call s:switch_lang(<f-args>)
 
+  com! -buffer -nargs=1 -complete=customlist,s:Langcpl Rlang :call s:switch_lang(<f-args>)
   com! -buffer -nargs=0 Rlangnext :call s:switch_lang(1)
   com! -buffer -nargs=0 Rlangprev :call s:switch_lang(-1)
 
@@ -385,6 +390,10 @@ function! s:Edit(name, cmd, ...) abort
 endfunction
 
 function! s:switch_app(name, ...)
+  if !exists('b:reinhardt_root')
+    return s:error('Cannot switch app: current app is not in a project.')
+  endif
+
   if !has_key(s:apps, a:name)
     return s:error(a:name . ' - No such app.')
   endif
@@ -455,6 +464,10 @@ function! s:switch_file(kind, ...)
 endfunction
 
 function! s:Cd(cmd, ...)
+  if !exists('b:reinhardt_root')
+    return s:error('Cannot change directory: current app is not in a project.')
+  endif
+
   let path = b:reinhardt_root
   if a:0
     if !has_key(s:apps, a:1)
@@ -572,12 +585,21 @@ function! s:get_manage()
 endfunction
 
 function! s:Manage(...)
+  if !exists('b:reinhardt_root')
+    return echoerr 'Cannot manage: not in project.'
+  endif
+
   exe "!" s:get_manage() join(a:000)
 endfunction
 
 function! s:Managecpl(A,P,L)
   let default = 'cleanup compilemessages createcachetable dbshell diffsettings dumpdata flush inspectdb loaddata makemessages reset runfcgi runserver shell sql sqlall sqlclear sqlcustom sqlflush sqlindexes sqlinitialdata sqlreset sqlsequencereset startapp startproject syncdb test testserver validate'
-  let cmds = extend(split(default), s:get_management_commands())
+  let cmds = split(default)
+
+  if exists('b:reinhardt_root')
+    let cmds = extend(cmds, s:get_management_commands())
+  endif
+
   return sort(filter(cmds, 'v:val =~# "^".a:A'))
 endfunction
 
@@ -715,6 +737,7 @@ endif
 
 function! s:find_apps(...)
   " Recursively test for Django apps, default to the app root
+  " This assumes that we are in a project and not only in an application.
   let path = a:0 ? a:1 : b:reinhardt_root
   for dir in filter(split(globpath(path, '*'), '\n'), 'isdirectory(v:val)')
     if filereadable(s:join(dir, '__init__.py')) " Skip anything non-python
@@ -728,7 +751,9 @@ function! s:find_apps(...)
 endfunction
 
 function! BufInit()
-  call s:find_apps()
+  if exists('b:reinhardt_root')
+    call s:find_apps()
+  endif
 
   if &ft =~ 'python'
     call s:add_ft('django', 1)
@@ -740,9 +765,6 @@ function! BufInit()
   call s:BufCommands()
   call s:BufSyntax()
 endfunction
-
-exe 'map <Plug>xsid <SID>|let s:sid=matchstr(maparg("<Plug>xsid"), "\\d\\+_")|unmap <Plug>xsid'
-let s:file = expand('<sfile>:p')
 
 if !exists('s:apps')
   let s:apps = {}

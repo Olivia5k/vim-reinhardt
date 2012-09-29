@@ -18,9 +18,10 @@ it!
         * [ ] Project commands are calculated; defaults are stored
     * [-] Store test classes and methods (calculated with snakeskin)
     * [ ] url/view mappings
-* [ ] Implement non-project initialisation
-    * [ ] Make g:reinhardt_root be buffer local
+* [o] Implement non-project initialisation
+    * [X] Make g:reinhardt_root be buffer local
     * [ ] Init on app finding
+        * [ ] Setup project as well
 
 = Base =
 * [X] Correctly set the python.django filetype
@@ -70,6 +71,7 @@ it!
         * [ ] Do other users want it?
         * [ ] Is powerful switches enough?
     * [ ] Extend Rswitch to use snakeskin after the app
+    * [ ] Add D functionality
 * [ ] Templates
     * [ ] Straight up
     * [ ] Guessing. How?
@@ -81,6 +83,9 @@ it!
 * [X] Rcd, Rlcd
     * [X] cd to app
     * [X] cd to project root
+* [ ] Rename Rutil to Rlib
+    * [ ] check for helpers.py and lib.py as well
+* [ ] Implement :find
 
 = Boilerplates =
 * [ ] management commands
@@ -88,6 +93,7 @@ it!
 * [ ] empty admin
     * [ ] generate from models
 * empty models
+
 = manage.py =
 * [X] Determine binary
     * [X] manage.py
@@ -108,6 +114,7 @@ it!
 * [ ] Framework
     * [ ] Completion callbacks
     * [ ] Execution callbacks
+* [ ] Separation of in-project and non-project commands
 
 = Runserver =
 * [ ] Starting and stopping
@@ -129,6 +136,7 @@ it!
 * [ ] Make and compile on write?
 * [ ] Linguist
     * [ ] Omnicompletion for keys
+* [ ] gf in templates
 
 = Test running =
 * [ ] Quickfix for tracebacks
