@@ -169,6 +169,26 @@ Having linguist will also define these commands:
 			directories under app/locale to determine what
 			languages to cycle between.
 
+						*reinhardt-ctrlp*
+CtrlP (https://github.com/kien/ctrlp.vim)
+Badass fuzzy file finder written entirely in vimscript.
+If found by reinhardt, it will override the |:Rtemplate| and |:Rstatic|
+families of commands and open a CtrlP window for their respective directories
+on their invocation.
+
+Having CtrlP will also define these commands:
+
+						*reinhardt-:Rctrlp*
+:Rctrlp 		Opens CtrlP at the current project root.
+
+						*reinhardt-:RctrlpApp*
+:RctrlpApp 		Opens CtrlP at the current application root.
+
+						*reinhardt-:RctrlpTemplate*
+:RctrlpTemplate		Opens CtrlP at app/templates.
+
+						*reinhardt-:RctrlpStatic*
+:RctrlpStatic		Opens CtrlP at app/static.
 
 ABOUT					*reinhardt-about* *reinhardt-plugin-author*
 
