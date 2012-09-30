@@ -23,6 +23,10 @@ Further features below:
   statusline. You can also use `gf` on a translation key to go to it's
   definition in the django.po file for the current language.
 
+* Integration to other quickfast plugins in the vim universe. vim-reinhardt
+  currently gain speed bonuses should you have have
+  [ctrlp.vim](https://github.com/kien/ctrlp.vim) installed.
+
 Installation
 ------------
 
