@@ -263,7 +263,16 @@ function! s:addcmd(type, ...)
 
   while cmds != ''
     let s = 'com! -nargs=* -complete=customlist,s:'.cpl.'cpl R'.cmd.a:type.' '
-    let s = s . ':call s:Edit("'.a:type.'", "'.cmd.'", <f-args>)'
+
+    " Optional second argument specifies commands for all EVST subcommands.
+    " Used by plugin overriding, eg Ctrlp.
+    if len(a:000) == 2
+      let exe = a:2
+    else
+      let exe = ':call s:Edit("'.a:type.'", "'.cmd.'", <f-args>)'
+    endif
+
+    let s = s . exe
     exe s
 
     let cmd = strpart(cmds,0,1)
@@ -358,6 +367,12 @@ function! s:BufVariables()
   exe "setlocal path=" . join(paths, ',')
 endfunction
 
+function! s:BufPlugins()
+  if exists('g:loaded_ctrlp')
+    call s:setup_ctrlp()
+  endif
+endfunction
+
 function! s:BufSyntax()
   if &ft =~ 'django'
     syntax keyword pythonDjangoKeyword request
@@ -373,6 +388,23 @@ endfunction
 " }}}
 " Alternating and navigation {{{1
 
+let s:_openref = {
+  \ 'e': 'edit',
+  \ 's': 'split',
+  \ 'h': 'split',
+  \ 'v': 'vsplit',
+  \ 't': 'tabedit',
+  \ 'd': 'read',
+  \ }
+
+function s:openref(ref)
+  let ref = tolower(a:ref)
+  if a:ref == "" || !has_key(s:_openref, ref)
+    return 'edit'
+  endif
+  return s:_openref[ref]
+endfunction
+
 function! s:Edit(name, cmd, ...) abort
   let args = extend([a:name], a:000)
   let fn = call('s:switch_file', args)
@@ -386,18 +418,10 @@ function! s:Edit(name, cmd, ...) abort
     return
   endif
 
-  let cmd = 'edit'
-
-  if a:cmd == 'S'
-    let cmd = 'split'
-  elseif a:cmd == 'V'
-    let cmd = 'vsplit'
-  elseif a:cmd == 'T'
-    let cmd = 'tabedit'
-  endif
-
+  let cmd = s:openref(a:cmd)
   let args = a:000
   let fn = s:join(s:get_current_app(), fn)
+
   if isdirectory(fn) && a:0
     let fn = s:join(fn, a:1 . '.py')
     let args = args[1:]
@@ -753,6 +777,33 @@ if exists('g:loaded_linguist')
 endif
 
 " }}}2
+" CtrlP {{{2
+
+if exists('g:loaded_ctrlp')
+  function! s:run_ctrlp(kind, ...)
+    let path = b:reinhardt_{a:kind}
+
+    if a:0
+      let path = s:join(path, a:1)
+    endif
+
+    call ctrlp#init(0, {'dir': path})
+  endfunction
+
+  function! s:setup_ctrlp()
+    command! Rctrlp         call s:run_ctrlp('root')
+    command! RctrlpApp      call s:run_ctrlp('app')
+    command! RctrlpTemplate call s:run_ctrlp('app', 'templates')
+    command! RctrlpStatic   call s:run_ctrlp('app', 'static')
+
+    " Override the :Rtemplate and :Rstatic series of commands since they make
+    " more sense as Ctrlp lists than vim commands with completion.
+    call s:addcmd('template', 'App', ':call s:run_ctrlp("app", "templates")')
+    call s:addcmd('static', 'App', ':call s:run_ctrlp("app", "static")')
+  endfunction
+endif
+
+" }}}2
 " }}}
 " Initialization {{{1
 
@@ -776,11 +827,14 @@ function! BufInit()
     call s:find_apps()
   endif
 
+  " Yay setup! Order matters; plugin setup needs to be last since they often
+  " contain command and mapping overrides.
   call s:BufFiletypes()
   call s:BufSyntax()
   call s:BufVariables()
   call s:BufCommands()
   call s:BufMappings()
+  call s:BufPlugins()
 endfunction
 
 if !exists('s:apps')

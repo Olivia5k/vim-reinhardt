@@ -74,6 +74,7 @@ it!
         * [ ] Is powerful switches enough?
     * [ ] Extend Rswitch to use snakeskin after the app
     * [ ] Add D functionality
+    * [ ] Disable app-centric mappings when not in an app
 * [ ] Templates
     * [ ] Straight up
     * [ ] Guessing. How?
@@ -164,14 +165,20 @@ it!
 * [ ] Research possibilities for other badass functions
 
 = Plugin integration =
-* [ ] ctrlp
+* [o] ctrlp
     * [ ] List choosing
-    * [ ] File/definition finding, app relative
-        * [ ] Templates
+    * [X] Projet files
+    * [X] App files
+    * [.] File/definition finding, app relative
+        * [X] Templates
+        * [X] Statics
         * [ ] Views
         * [ ] Models
         * [ ] msgids
         * [ ] Commands
+    * [ ] Implement app switcher for Ctrlp ESVT overrides
+    * [ ] Implement more complete ESVT solution: :RStemplate currently listens
+          to the choice from Ctrlp rather than the invocation choice.
 * [ ] Nerdtree
     * [ ] Open current app
     * [ ] Open project
