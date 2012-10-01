@@ -746,7 +746,7 @@ if exists('g:loaded_linguist')
         let len += len(lang1) + 1
 
         " la/l1
-        exe 'echoh' d '| echon "/"' '| echoh' c '| echon' lang1
+        exe 'echoh' d '| echon "/" | echoh' c '| echon "'.lang1.'"'
       endif
     else
       let lang1 = langs[idx - 1]
