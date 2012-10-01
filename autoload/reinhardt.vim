@@ -686,7 +686,7 @@ if exists('g:loaded_linguist')
   endfunction
 
   function! s:LinguistPrint() abort
-    redraw
+    " redraw
     let key = s:get_i18n_key()
     if key != ''
       let fn = fnamemodify(s:get_lang_file(), ':p')
@@ -722,6 +722,8 @@ if exists('g:loaded_linguist')
       endif
 
       echon msg
+    else
+      echo
     endif
   endfunction
 
