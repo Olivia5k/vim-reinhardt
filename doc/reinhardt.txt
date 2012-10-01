@@ -93,7 +93,6 @@ and opening in a new tab.  For :Rmodel, those variants would be :RSmodel,
 :Rmanage					|reinhardt-:Rmanage|
 :Rmiddle					|reinhardt-:Rmiddle|
 :Rmodel						|reinhardt-:Rmodel|
-:Rmodel						|reinhardt-:Rmodel|
 :Rstatic					|reinhardt-:Rstatic|
 :Rtemplate					|reinhardt-:Rtemplate|
 :Rtest						|reinhardt-:Rtest|
