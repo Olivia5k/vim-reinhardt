@@ -347,9 +347,9 @@ function! s:BufCommands()
 endfunction
 
 function! s:BufFiletypes()
-  if &ft =~ 'python'
-    call s:add_ft('django', 1)
-  elseif &ft =~ 'x\?html\?'
+  " if &ft =~ 'python'
+  " call s:add_ft('django', 1)
+  if &ft =~ 'x\?html\?'
     call s:add_ft('htmldjango', 0)
   endif
 endfunction
