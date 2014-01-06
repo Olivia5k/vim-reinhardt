@@ -3,6 +3,24 @@ vim-reinhardt
 
 Quickfast power tools for using vim to develop Django applications.
 
+Repository status
+------------
+
+**Status**: *Inactive*.
+
+When I wrote this plugin, I was working at a Django shop and used this plugin
+daily.  It was a great resource of gaining speed, and since it was my first big
+vimscript plugin I learned tons.
+
+However, since I don't work there anymore and don't use Django in any of my own
+projects, I have no real reason to keep developing this plugin.  If anyone
+likes it and wants to carry the torch I would be more than happy to have
+a little handover of it.
+
+
+Screenshot and features
+------------
+
 ![Everybody loves screenshots!](http://quickfast.ninjaloot.se/img/steroids.png)
 
 Screenshot showcasing one of the plugins navigation capabilities; Direct
@@ -26,6 +44,7 @@ Further features below:
 * Integration to other quickfast plugins in the vim universe. vim-reinhardt
   currently gain speed bonuses should you have have
   [ctrlp.vim](https://github.com/kien/ctrlp.vim) installed.
+
 
 Installation
 ------------
